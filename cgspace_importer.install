@@ -1,0 +1,38 @@
+<?php
+use Drupal\migrate_plus\Entity\Migration;
+
+function cgspace_importer_install()
+{
+
+  /** @var \Drupal\migrate_plus\Entity\MigrationInterface $wine_role_xml_migration */
+  $migration = Migration::load('cgspace_importer_publication');
+  if ($migration) {
+    $source = $migration->get('source');
+    $request = \Drupal::request();
+    $urls = [];
+    foreach ($source['urls'] as $url) {
+      $urls[] = $request->getSchemeAndHttpHost() . $url;
+    }
+    $source['urls'] = $urls;
+    $migration->set('source', $source);
+    $migration->save();
+  }
+
+}
+
+function cgspace_importer_uninstall() {
+
+  \Drupal::database()->delete('config')
+    ->condition('name', 'migrate_plus.migration_group.cgspace_importer')
+    ->execute();
+
+  \Drupal::database()->delete('config')
+    ->condition('name', 'migrate_plus.migration.cgspace_importer_publication')
+    ->execute();
+
+  \Drupal::database()->delete('config')
+    ->condition('name', 'migrate_plus.migration.cgspace_importer_publication_projects')
+    ->execute();
+
+  drupal_flush_all_caches();
+}

@@ -1,0 +1,13 @@
+name: CGSpace Publications Importer
+type: module
+description: 'Import publications from CGSpace'
+core: 8.x
+core_version_requirement: ^8 || ^9 || ^10
+dependencies:
+  - node
+  - migrate_file
+  - migrate
+  - migrate_plus
+  - migrate_tools
+package: 'Content'
+configure: cgspace_importer.settings

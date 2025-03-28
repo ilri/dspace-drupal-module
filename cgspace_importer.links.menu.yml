@@ -1,0 +1,10 @@
+cgspace_importer.settings:
+  title: CGSpace
+  description: 'Settings for CGSpace Importer'
+  parent: system.admin_config_services
+  route_name: cgspace_importer.settings
+cgspace_importer.menu:
+  title: 'Sync CGSpace'
+  route_name: cgspace_importer.sync_cgspace
+  menu: admin
+  parent: system.admin_content

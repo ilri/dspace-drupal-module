@@ -1,0 +1,19 @@
+cgspace_importer.settings:
+  path: '/admin/config/cgspace/settings'
+  defaults:
+    _form: '\Drupal\cgspace_importer\Form\CGSpaceSettingsForm'
+    _title: 'CGSpace Settings'
+  requirements:
+    _permission: 'administer cgspace'
+cgspace_importer.sync_cgspace:
+  path: '/admin/content/cgspace-sync'
+  defaults:
+    _controller: '\Drupal\cgspace_importer\Controller\SyncContentController::sync'
+  requirements:
+    _permission: 'sync content from CGSpace'
+cgspace_importer.sync_cgspace_publications:
+  path: '/admin/content/cgspace-sync-publications'
+  defaults:
+    _controller: '\Drupal\cgspace_importer\Controller\SyncContentController::syncPublications'
+  requirements:
+    _permission: 'sync content from CGSpace'

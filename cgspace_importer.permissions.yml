@@ -1,0 +1,7 @@
+administer cgspace:
+  title: 'Administer CGSpace'
+  description: 'Allows a user to configure CGSpace endpoint and collections to be imported.'
+sync content from CGSpace:
+  title: 'Sync content from CGSpace'
+  description: 'With this permission user can run the CGSpace importer to sync publications'
+  restrict access: TRUE

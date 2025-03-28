@@ -1,0 +1,25 @@
+.cgspace-importer-admin-settings .form-item-indent-1.form-item {
+  margin-left: calc(var(--input--label-spacing) + 1.5rem) !important;
+  position: relative;
+}
+
+.cgspace-importer-admin-settings .form-item-indent-2.form-item {
+  margin-left: calc(var(--input--label-spacing) + 3rem) !important;
+  position: relative;
+}
+
+.cgspace-importer-admin-settings .form-item-indent-3.form-item {
+  margin-left: calc(var(--input--label-spacing) + 4.5rem) !important;
+  position: relative;
+}
+
+div[class^=form-item-indent-].form-item:before {
+  content: '⎿︎';
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: bold;
+  position: absolute;
+  top: -.4rem;
+  bottom: 0;
+  left: calc(var(--input--label-spacing) * -1 - 1.5rem)
+}

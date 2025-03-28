@@ -1,0 +1,5 @@
+services:
+  cgspace_importer.commands:
+    class: \Drupal\cgspace_importer\Commands\SyncContentCommand
+    tags:
+      - { name: drush.command }
