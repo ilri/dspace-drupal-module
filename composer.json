@@ -1,0 +1,25 @@
+{
+    "name": "ilri/cgspace_importer",
+    "description": "Imports publications from CGSpace into a Drupal content type called cgspace_publication",
+    "type": "drupal-custom-module",
+    "homepage": "https://github.com/ilri/dspace-drupal-module",
+    "authors": [
+        {
+            "name": "Andrea Di Sabatino",
+            "homepage": "https://www.macaronibros.com",
+            "role": "Maintainer"
+        }
+    ],
+    "license": "GPL-3.0-or-later",
+    "minimum-stability": "dev",
+    "repositories": {
+        "drupal": {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    },
+    "require": {
+        "drupal/migrate_tools": ">=5",
+        "drupal/migrate_plus": ">=5"
+    }
+}
