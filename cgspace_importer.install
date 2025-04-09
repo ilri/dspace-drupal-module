@@ -5,7 +5,7 @@ function cgspace_importer_install()
 {
 
   /** @var \Drupal\migrate_plus\Entity\MigrationInterface $wine_role_xml_migration */
-  $migration = Migration::load('cgspace_importer_publication');
+  $migration = Migration::load('cgspace_publication_importer');
   if ($migration) {
     $source = $migration->get('source');
     $request = \Drupal::request();
@@ -27,12 +27,12 @@ function cgspace_importer_uninstall() {
     ->execute();
 
   \Drupal::database()->delete('config')
-    ->condition('name', 'migrate_plus.migration.cgspace_importer_publication')
+    ->condition('name', 'migrate_plus.migration.cgspace_publication_importer')
     ->execute();
 
-  \Drupal::database()->delete('config')
-    ->condition('name', 'migrate_plus.migration.cgspace_importer_publication_projects')
-    ->execute();
+//  \Drupal::database()->delete('config')
+//    ->condition('name', 'migrate_plus.migration.cgspace_publication_projects_importer')
+//    ->execute();
 
   drupal_flush_all_caches();
 }

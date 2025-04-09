@@ -1,0 +1,7 @@
+langcode: en
+status: true
+dependencies: {  }
+name: 'Publication: Type'
+vid: cgspace_publication_type
+description: 'Used to manage type of different Publications from CGSpace'
+new_revision: false

@@ -19,6 +19,7 @@
         }
     },
     "require": {
+        "drupal/country": ">=2",
         "drupal/migrate_tools": ">=5",
         "drupal/migrate_plus": ">=5"
     }

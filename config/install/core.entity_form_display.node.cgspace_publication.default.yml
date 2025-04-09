@@ -1,0 +1,91 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.cgspace_publication.body
+    - field.field.node.cgspace_publication.field_cg_access_rights
+    - field.field.node.cgspace_publication.field_cg_authors
+    - field.field.node.cgspace_publication.field_cg_authors_ref
+    - field.field.node.cgspace_publication.field_cg_citation
+    - field.field.node.cgspace_publication.field_cg_countries
+    - field.field.node.cgspace_publication.field_cg_doi
+    - field.field.node.cgspace_publication.field_cg_download_link
+    - field.field.node.cgspace_publication.field_cg_handle
+    - field.field.node.cgspace_publication.field_cg_image
+    - field.field.node.cgspace_publication.field_cg_link_document
+    - field.field.node.cgspace_publication.field_cg_link_journal
+    - field.field.node.cgspace_publication.field_cg_overridden_image
+    - field.field.node.cgspace_publication.field_cg_permanent_link
+    - field.field.node.cgspace_publication.field_cg_publication_type_ref
+    - field.field.node.cgspace_publication.field_cg_publication_year_ref
+    - field.field.node.cgspace_publication.field_cg_published_on
+    - field.field.node.cgspace_publication.field_cg_published_on_date
+    - field.field.node.cgspace_publication.field_cg_publisher
+    - field.field.node.cgspace_publication.field_cg_series
+#    - field.field.node.publication.field_impact_areas_ref
+#    - field.field.node.publication.field_initiatives_ref
+#    - field.field.node.publication.field_projects_ref
+#    - field.field.node.publication.field_tags_ref
+#    - field.field.node.publication.field_hubs_ref
+#    - field.field.node.publication.field_regions_ref
+#    - field.field.node.publication.field_research_programs_ref
+    - image.style.thumbnail
+    - node.type.cgspace_publication
+  module:
+    - image
+id: node.cgspace_publication.default
+targetEntityType: node
+bundle: cgspace_publication
+mode: default
+content:
+  field_cg_overridden_image:
+    type: image_image
+    weight: 0
+    region: content
+    settings:
+      progress_indicator: throbber
+      preview_image_style: thumbnail
+    third_party_settings: {  }
+#  field_projects_ref:
+#    type: entity_reference_autocomplete
+#    weight: 1
+#    region: content
+#    settings:
+#      match_operator: CONTAINS
+#      match_limit: 10
+#      size: 60
+#      placeholder: ''
+#    third_party_settings: {  }
+hidden:
+  body: true
+  created: true
+  field_cg_access_rights: true
+  field_cg_authors: true
+  field_cg_authors_ref: true
+  field_cg_citation: true
+  field_cg_countries: true
+  field_cg_doi: true
+  field_cg_download_link: true
+  field_cg_handle: true
+  field_cg_image: true
+  field_cg_link_document: true
+  field_cg_link_journal: true
+  field_cg_permanent_link: true
+  field_cg_publication_type_ref: true
+  field_cg_publication_year_ref: true
+  field_cg_published_on: true
+  field_cg_published_on_date: true
+  field_cg_publisher: true
+  field_cg_series: true
+#  field_hubs_ref: true
+#  field_impact_areas_ref: true
+#  field_initiatives_ref: true
+#  field_regions_ref: true
+#  field_research_programs_ref: true
+#  field_tags_ref: true
+  path: true
+  promote: true
+  status: true
+  sticky: true
+  title: true
+  uid: true

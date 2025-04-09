@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_countries
+    - node.type.cgspace_publication
+  module:
+    - country
+id: node.cgspace_publication.field_cg_countries
+field_name: field_cg_countries
+entity_type: node
+bundle: cgspace_publication
+label: Countries
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  selectable_countries: {  }
+field_type: country

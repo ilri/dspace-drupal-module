@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cg_doi
+    - node.type.cgspace_publication
+id: node.cgspace_publication.field_cg_doi
+field_name: field_cg_doi
+entity_type: node
+bundle: cgspace_publication
+label: Doi
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

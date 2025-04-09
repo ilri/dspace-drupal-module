@@ -1,7 +1,7 @@
 langcode: en
 status: true
 dependencies: {  }
-id: cgspace_importer_publication
+id: cgspace_publication_importer
 migration_tags:
   - 'CGSpace'
   - Content
@@ -177,55 +177,36 @@ process:
     -
       plugin: default_value
       default_value: filtered_html
-  field_authors: authors
-  field_tags_ref:
-    -
-      plugin: skip_on_empty
-      method: process
-      source: keywords
-    -
-      plugin: explode
-      delimiter: ', '
-      source: keywords
-    -
-      plugin: map_terms
-      vocabulary: tag
-      create: false
-  field_initiatives_ref:
-    -
-      plugin: map_publication_cgiar_research_initiatives
-      source: initiative
-      vocabulary: initiative
-      create: false
-  field_publication_year_ref:
+  field_cg_authors: authors
+  field_cg_publication_year_ref:
     -
       plugin: map_publication_year
       source: published_year
       vocabulary: publication_year
       create: true
-  field_published_on: published_on
-  field_published_on_date:
+  field_cg_published_on: published_on
+  field_cg_published_on_date:
     - plugin: process_authored_on
       source: published_on
-  field_publication_type_ref:
+  field_cg_publication_type_ref:
     -
       plugin: map_terms
       source: type
       vocabulary: publication_type
       create: true
-  field_publisher: publisher
-  field_citation: citation
-  field_series: series
-  field_access_rights: status
-  field_permanent_link/uri: permalink
-  field_handle: handle
-  field_doi:
+  field_cg_publisher: publisher
+  field_cg_citation: citation
+  field_cg_series: series
+  field_cg_access_rights: status
+  field_cg_permanent_link/uri: permalink
+  field_cg_handle: handle
+  field_cg_doi:
     -
       plugin: map_doi
       source: doi
-  field_link_journal/uri: link_to_journal_url
-  field_link_document/uri: link_to_documents_url
-  field_download_link/uri:
+  field_cg_link_journal/uri: link_to_journal_url
+  field_cg_link_document/uri: link_to_documents_url
+  field_cg_download_link/uri:
     -
       plugin: skip_on_empty
       method: process
@@ -237,43 +218,11 @@ process:
         - handle
         - download_url
       delimiter: /
-  field_download_link/title: download_title
-  field_research_programs_ref:
-    -
-      plugin: map_publication_research_programs
-      source: research_programs
-      vocabulary: ilri_program
-      create: false
-
-  field_hubs_ref:
-    - plugin: map_publication_hubs
-      source: hubs
-      vocabulary: ilri_hubs
-      create: false
-
-  field_countries:
+  field_cg_download_link/title: download_title
+  field_cg_countries:
     -
       plugin: map_countries
       source: regions
-  field_regions_ref:
-    - plugin: map_publication_regions
-      source: regions
-      vocabulary: region
-      create: false
-  field_impact_areas_ref:
-    -
-      plugin: skip_on_empty
-      method: process
-      source: subjects
-    -
-      plugin: explode
-      delimiter: ', '
-      source: subjects
-    -
-      plugin: map_publication_impact_areas
-      vocabulary: impact_area
-      create: false
-
   image_url:
     -
       plugin: skip_on_empty
@@ -295,29 +244,63 @@ process:
       source:
         - constants/image_destination
         - picture_name
-  field_image:
+  field_cg_image:
     -
       plugin: image_import
       source: '@image_url'
       destination: '@image_filename'
       skip_on_missing_source: true
-
-  field_authors_ref:
+  field_cg_authors_ref:
     -
       plugin: map_authors_to_users
       source: authors
-
-  field_projects_ref:
-    -
-      plugin: skip_on_empty
-      method: process
-      source: projects
-    -
-      plugin: map_terms
-      vocabulary: publication_projects
-      create: false
-
+#  field_tags_ref:
+#    -
+#      plugin: skip_on_empty
+#      method: process
+#      source: keywords
+#    -
+#      plugin: explode
+#      delimiter: ', '
+#      source: keywords
+#    -
+#      plugin: map_terms
+#      vocabulary: tag
+#      create: false
+#  field_initiatives_ref:
+#    -
+#      plugin: map_publication_cgiar_research_initiatives
+#      source: initiative
+#      vocabulary: initiative
+#      create: false
+#  field_projects_ref:
+#    -
+#      plugin: skip_on_empty
+#      method: process
+#      source: projects
+#    -
+#      plugin: map_terms
+#      vocabulary: publication_projects
+#      create: false
+#  field_regions_ref:
+#    - plugin: map_publication_regions
+#      source: regions
+#      vocabulary: region
+#      create: false
+#  field_impact_areas_ref:
+#    -
+#      plugin: skip_on_empty
+#      method: process
+#      source: subjects
+#    -
+#      plugin: explode
+#      delimiter: ', '
+#      source: subjects
+#    -
+#      plugin: map_publication_impact_areas
+#      vocabulary: impact_area
+#      create: false
 destination:
   plugin: 'entity:node'
-  default_bundle: publication
+  default_bundle: cgspace_publication
 

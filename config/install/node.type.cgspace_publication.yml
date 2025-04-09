@@ -1,0 +1,9 @@
+langcode: en
+status: true
+name: Publication
+type: cgspace_publication
+description: 'Content type automatically updated by CGSpace importer.'
+help: null
+new_revision: false
+preview_mode: 0
+display_submitted: false

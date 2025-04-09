@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cg_published_on_date
+    - node.type.cgspace_publication
+  module:
+    - datetime
+id: node.cgspace_publication.field_cg_published_on_date
+field_name: field_cg_published_on_date
+entity_type: node
+bundle: cgspace_publication
+label: 'Published on'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime
