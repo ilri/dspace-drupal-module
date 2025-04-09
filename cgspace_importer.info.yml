@@ -10,6 +10,7 @@ dependencies:
   - image
   - link
   - migrate
+  - migrate_file
   - migrate_plus
   - migrate_tools
   - node

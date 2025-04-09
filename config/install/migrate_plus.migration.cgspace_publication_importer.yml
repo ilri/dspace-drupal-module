@@ -250,10 +250,10 @@ process:
       source: '@image_url'
       destination: '@image_filename'
       skip_on_missing_source: true
-  field_cg_authors_ref:
-    -
-      plugin: map_authors_to_users
-      source: authors
+#  field_cg_authors_ref:
+#    -
+#      plugin: map_authors_to_users
+#      source: authors
 #  field_tags_ref:
 #    -
 #      plugin: skip_on_empty

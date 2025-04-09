@@ -1,0 +1,224 @@
+uuid: aa6c2b5c-6af5-4508-9d06-e10035c1e0f5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.cgspace_publication.body
+    - field.field.node.cgspace_publication.field_cg_access_rights
+    - field.field.node.cgspace_publication.field_cg_authors
+    - field.field.node.cgspace_publication.field_cg_authors_ref
+    - field.field.node.cgspace_publication.field_cg_citation
+    - field.field.node.cgspace_publication.field_cg_countries
+    - field.field.node.cgspace_publication.field_cg_doi
+    - field.field.node.cgspace_publication.field_cg_download_link
+    - field.field.node.cgspace_publication.field_cg_handle
+    - field.field.node.cgspace_publication.field_cg_image
+    - field.field.node.cgspace_publication.field_cg_link_document
+    - field.field.node.cgspace_publication.field_cg_link_journal
+    - field.field.node.cgspace_publication.field_cg_overridden_image
+    - field.field.node.cgspace_publication.field_cg_permanent_link
+    - field.field.node.cgspace_publication.field_cg_publication_type_ref
+    - field.field.node.cgspace_publication.field_cg_publication_year_ref
+    - field.field.node.cgspace_publication.field_cg_published_on
+    - field.field.node.cgspace_publication.field_cg_published_on_date
+    - field.field.node.cgspace_publication.field_cg_publisher
+    - field.field.node.cgspace_publication.field_cg_series
+    - node.type.cgspace_publication
+  module:
+    - country
+    - datetime
+    - image
+    - link
+    - text
+    - user
+id: node.cgspace_publication.default
+targetEntityType: node
+bundle: cgspace_publication
+mode: default
+content:
+  body:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_cg_access_rights:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_cg_authors:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_cg_authors_ref:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_cg_citation:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_cg_countries:
+    type: country_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_cg_doi:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 6
+    region: content
+  field_cg_download_link:
+    type: link
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    weight: 8
+    region: content
+  field_cg_handle:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 7
+    region: content
+  field_cg_image:
+    type: image
+    label: above
+    settings:
+      image_link: ''
+      image_style: ''
+      image_loading:
+        attribute: lazy
+    third_party_settings: {  }
+    weight: 9
+    region: content
+  field_cg_link_document:
+    type: link
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    weight: 11
+    region: content
+  field_cg_link_journal:
+    type: link
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    weight: 12
+    region: content
+  field_cg_overridden_image:
+    type: image
+    label: above
+    settings:
+      image_link: ''
+      image_style: ''
+      image_loading:
+        attribute: lazy
+    third_party_settings: {  }
+    weight: 10
+    region: content
+  field_cg_permanent_link:
+    type: link
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    weight: 13
+    region: content
+  field_cg_publication_type_ref:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 14
+    region: content
+  field_cg_publication_year_ref:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 15
+    region: content
+  field_cg_published_on:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 16
+    region: content
+  field_cg_published_on_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 17
+    region: content
+  field_cg_publisher:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 18
+    region: content
+  field_cg_series:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 19
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 20
+    region: content
+hidden: {  }
