@@ -15,10 +15,13 @@ translatable: false
 default_value: {  }
 default_value_callback: ''
 settings:
-  handler: views
+  handler: 'default:user'
   handler_settings:
-    view:
-      view_name: user
-      display_name: entity_reference_1
-      arguments: {  }
+    target_bundles: null
+    sort:
+      field: _none
+    auto_create: false
+    filter:
+      type: _none
+    include_anonymous: false
 field_type: entity_reference

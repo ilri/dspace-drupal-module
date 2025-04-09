@@ -4,4 +4,5 @@ dependencies: {  }
 name: 'Publication: Year'
 vid: cgspace_publication_year
 description: 'Used to manage Publications years from CGSpace'
+weight: 0
 new_revision: false

@@ -2,7 +2,7 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_countries
+    - field.storage.node.field_cg_countries
     - node.type.cgspace_publication
   module:
     - country

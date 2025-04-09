@@ -5,12 +5,14 @@ core: 8.x
 core_version_requirement: ^8 || ^9 || ^10 || ^11
 dependencies:
   - country
+  - datetime
+  - file
   - image
   - link
   - migrate
-  - migrate_file
   - migrate_plus
   - migrate_tools
   - node
+  - taxonomy
 package: 'Content'
 configure: cgspace_importer.settings

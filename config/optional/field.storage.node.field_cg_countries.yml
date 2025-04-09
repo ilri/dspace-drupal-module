@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - country
+    - node
+id: node.field_cg_countries
+field_name: field_cg_countries
+entity_type: node
+type: country
+settings:
+  selectable_countries: {  }
+module: country
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

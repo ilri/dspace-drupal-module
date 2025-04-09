@@ -3,6 +3,7 @@
 namespace Drupal\cgspace_importer\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Ajax\AjaxResponse;
@@ -28,9 +29,9 @@ class CGSpaceSettingsForm extends ConfigFormBase {
   private $endpoint;
   private $proxy;
 
-  public function __construct(ConfigFactoryInterface $config_factory)
+  public function __construct(ConfigFactoryInterface $config_factory, protected TypedConfigManagerInterface $typedConfigManager,)
   {
-    parent::__construct($config_factory);
+    parent::__construct($config_factory, $typedConfigManager);
 
     $this->endpoint = $this->config(static::SETTINGS)->get('endpoint');
     $this->proxy = new CGSpaceProxy($this->endpoint);

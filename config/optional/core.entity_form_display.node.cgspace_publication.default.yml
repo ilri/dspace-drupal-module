@@ -40,7 +40,7 @@ mode: default
 content:
   field_cg_overridden_image:
     type: image_image
-    weight: 0
+    weight: 1
     region: content
     settings:
       progress_indicator: throbber
@@ -83,7 +83,6 @@ hidden:
 #  field_regions_ref: true
 #  field_research_programs_ref: true
 #  field_tags_ref: true
-  path: true
   promote: true
   status: true
   sticky: true

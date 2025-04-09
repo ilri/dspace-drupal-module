@@ -4,4 +4,5 @@ dependencies: {  }
 name: 'Publication: Type'
 vid: cgspace_publication_type
 description: 'Used to manage type of different Publications from CGSpace'
+weight: 0
 new_revision: false
