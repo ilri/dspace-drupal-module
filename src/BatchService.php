@@ -3,7 +3,7 @@
 namespace Drupal\cgspace_importer;
 
 use Drupal\cgspace_importer\Plugin\cgspace_importer\CGSpaceProxy;
-use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileExists;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
@@ -15,17 +15,24 @@ class BatchService {
    * Common batch processing callback for all operations.
    */
   public static function batchProcess($item_id, &$context) {
+    // Retrieve the necessary services from the container.
+    $configFactory = \Drupal::service('config.factory');
+    $httpClient = \Drupal::service('http_client');
+    $serializer = \Drupal::service('serializer');
 
-    $endpoint = \Drupal::config('cgspace_importer.settings')->get('endpoint');
-    $proxy = new CGSpaceProxy($endpoint);
+    // Get the endpoint from the configuration.
+    $endpoint = $configFactory->get('cgspace_importer.settings')->get('endpoint');
+
+    // Instantiate the CGSpaceProxy with the required dependencies.
+    $proxy = new CGSpaceProxy($endpoint, $configFactory, $httpClient, $serializer);
 
     $context['results'][] = $proxy->getItem($item_id);
 
     // Optional message displayed under the progressbar.
     $context['message'] = t('Getting publication <a href="@url" target="_blank">@title</a>', [
       '@id' => $item_id,
-      '@url' => 'https://cgspace.cgiar.org/rest/items/'.$item_id,
-      '@title' => 'https://cgspace.cgiar.org/rest/items/'.$item_id,
+      '@url' => 'https://cgspace.cgiar.org/server/api/core/items/'.$item_id,
+      '@title' => 'https://cgspace.cgiar.org/server/api/core/items'.$item_id,
     ]);
 
   }
@@ -58,7 +65,7 @@ class BatchService {
       $content = $document->saveXML();
 
       $destination = 'public://cgspace-proxy.xml';
-      if (\Drupal::service('file.repository')->writeData($content, $destination, FileSystemInterface::EXISTS_REPLACE)) {
+      if (\Drupal::service('file.repository')->writeData($content, $destination, FileExists::Rename)) {
         \Drupal::messenger()->addMessage(t('DSpace Proxy XML file created <a href="@destination">here</a>.', array('@destination' => \Drupal::service('file_url_generator')->generateAbsoluteString($destination) )));
 
         //$redirect = new RedirectResponse('/admin/content/cgspace-sync-publications');
