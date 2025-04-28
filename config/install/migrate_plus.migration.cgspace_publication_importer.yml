@@ -141,7 +141,7 @@ source:
     image_destination: 'public://publication-covers/'
     cgspace_url: 'https://cgspace.cgiar.org/bitstream/handle'
     cgspace_base_url: 'https://cgspace.cgiar.org'
-    cgspace_rest_url: '/rest'
+    cgspace_rest_url: '/server/api'
 process:
   langcode:
     -

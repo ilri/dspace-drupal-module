@@ -3,19 +3,25 @@
 namespace Drupal\cgspace_importer\Commands;
 
 use Drupal\cgspace_importer\Plugin\cgspace_importer\CGSpaceProxy;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drush\Commands\DrushCommands;
 use Drupal\cgspace_importer\Controller\SyncContentController;
+use GuzzleHttp\ClientInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 /**
  * A Drush commandfile.
  */
 class SyncContentCommand extends DrushCommands {
 
+  protected $endpoint;
+  protected $collections;
+  protected $proxy;
 
-  public function __construct()
-  {
-    $this->endpoint = \Drupal::config('cgspace_importer.settings')->get('endpoint');
-    $this->collections = \Drupal::config('cgspace_importer.settings.collections')->get();
-    $this->proxy = new CGSpaceProxy($this->endpoint);
+  public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $httpClient, SerializerInterface $serializer) {
+    parent::__construct();
+    $this->endpoint = $configFactory->get('cgspace_importer.settings')->get('endpoint');
+    $this->collections = $configFactory->get('cgspace_importer.settings.collections')->get();
+    $this->proxy = new CGSpaceProxy($this->endpoint, $configFactory, $httpClient, $serializer);
   }
   /**
    * Echos back hello with the argument provided.
@@ -25,6 +31,7 @@ class SyncContentCommand extends DrushCommands {
    * @command cgspace_importer:sync
    * @aliases cgspace-sync
    * @usage cgspace_importer:sync
+   * @throws \Exception
    */
   public function sync() {
     // Create batch which collects all the specified queue items and process them one after another

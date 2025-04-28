@@ -1,0 +1,6 @@
+services:
+  cgspace_importer.serializer:
+    class: Symfony\Component\Serializer\Serializer
+    arguments: [['@serializer.normalizer.content_entity'], ['@serializer.encoder']]
+  serializer.encoder:
+    class: Symfony\Component\Serializer\Encoder\XmlEncoder

@@ -15,5 +15,6 @@ dependencies:
   - migrate_tools
   - node
   - taxonomy
+  - serialization
 package: 'Content'
 configure: cgspace_importer.settings

@@ -9,7 +9,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Component\Utility\UrlHelper;
-
 use Drupal\cgspace_importer\Plugin\cgspace_importer\CGSpaceProxy;
 
 /**
@@ -29,12 +28,25 @@ class CGSpaceSettingsForm extends ConfigFormBase {
   private $endpoint;
   private $proxy;
 
-  public function __construct(ConfigFactoryInterface $config_factory, protected TypedConfigManagerInterface $typedConfigManager,)
+  public function __construct(ConfigFactoryInterface $configFactory, protected $typedConfigManager, CGSpaceProxy $proxy)
   {
-    parent::__construct($config_factory, $typedConfigManager);
-
+    parent::__construct($configFactory, $typedConfigManager);
+    $this->proxy = $proxy;
     $this->endpoint = $this->config(static::SETTINGS)->get('endpoint');
-    $this->proxy = new CGSpaceProxy($this->endpoint);
+  }
+
+  public static function create($container): static {
+    $endpoint = $container->get('config.factory')->get(static::SETTINGS)->get('endpoint');
+    return new static(
+      $container->get('config.factory'),
+      $container->get('config.typed'),
+      new CGSpaceProxy(
+        $endpoint,
+        $container->get('config.factory'),
+        $container->get('http_client'),
+        $container->get('cgspace_importer.serializer')
+      ),
+    );
   }
 
   /**

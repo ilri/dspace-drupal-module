@@ -7,15 +7,18 @@
 namespace Drupal\cgspace_importer\Controller;
 
 use Drupal\cgspace_importer\Plugin\cgspace_importer\CGSpaceProxy;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\File\FileSystemInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Drupal\migrate_tools\MigrateBatchExecutable;
 use Drupal\migrate\MigrateMessage;
 
+use GuzzleHttp\ClientInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-
+use Symfony\Component\Serializer\SerializerInterface;
 
 class SyncContentController extends ControllerBase implements ContainerInjectionInterface{
 
@@ -24,11 +27,19 @@ class SyncContentController extends ControllerBase implements ContainerInjection
   private $collections;
   private $proxy;
 
-  public function __construct()
-  {
-    $this->endpoint = \Drupal::config('cgspace_importer.settings')->get('endpoint');
-    $this->collections = \Drupal::config('cgspace_importer.settings.collections')->get();
-    $this->proxy = new CGSpaceProxy($this->endpoint);
+  public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $httpClient, SerializerInterface $serializer) {
+    $this->endpoint = $configFactory->get('cgspace_importer.settings')->get('endpoint');
+    $this->collections = $configFactory->get('cgspace_importer.settings.collections')->get();
+    $this->proxy = new CGSpaceProxy($this->endpoint, $configFactory, $httpClient, $serializer);
+  }
+
+
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('http_client'),
+      $container->get('serializer')
+    );
   }
 
   /**
@@ -46,7 +57,7 @@ class SyncContentController extends ControllerBase implements ContainerInjection
     $items = [];
     foreach($this->collections as $collection_key => $collection_value) {
       if($collection_value) {
-        foreach ($this->proxy->getItems($collection_key) as $item) {
+        foreach ($this->proxy->getItems($collection_key, 1) as $item) {
           $items[] = $item;
         }
       }

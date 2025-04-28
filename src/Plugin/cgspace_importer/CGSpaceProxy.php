@@ -8,16 +8,16 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   use StringTranslationTrait;
 
-  public function getCommunities() {
+  public function getCommunities(): array {
     $result = array();
 
     try {
-      $communities = $this->getData($this->endpoint . '/rest/communities/top-communities?limit=1000');
+      $communities = $this->getData($this->endpoint . '/server/api/core/communities/search/top?size=1000');
 
       $xml = new \SimpleXMLElement($communities);
 
-      foreach ($xml->children() as $community) {
-        $result[(string)$community->UUID] = (string)$community->name . ' <strong>(' . (string)$community->countItems . ')</strong>';
+      foreach ($xml->_embedded->communities as $community) {
+        $result[(string)$community->uuid] = (string)$community->name . ' <strong>(' . (string)$community->archivedItemsCount . ')</strong>';
       }
     }
     catch(\Exception $ex) {
@@ -27,16 +27,17 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
-  public function getSubCommunities($community) {
+  public function getSubCommunities($community): array {
     $result = array();
 
     try {
-      $communities = $this->getData("$this->endpoint/rest/communities/$community/communities?limit=1000");
+      $communities = $this->getData("$this->endpoint/server/api/core/communities/$community/subcommunities?size=1000");
 
       $xml = new \SimpleXMLElement($communities);
 
-      foreach ($xml->children() as $community) {
-        $result[(string)$community->UUID] = (string)$community->name . ' <strong>(' . (string)$community->countItems . ')</strong>';
+      foreach ($xml->_embedded->subcommunities as $community) {
+        if(!empty($community))
+          $result[(string)$community->uuid] = (string)$community->name . ' <strong>(' . (string)$community->archivedItemsCount . ')</strong>';
       }
     }
     catch(\Exception $ex) {
@@ -46,18 +47,17 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
-  public function getCollections($community) {
+  public function getCollections($community): array {
 
     $result = array();
 
     try {
-      $collections = $this->getData("$this->endpoint/rest/communities/$community/collections?limit=1000");
+      $collections = $this->getData("$this->endpoint/server/api/core/communities/$community/collections?size=1000");
 
       $xml = new \SimpleXMLElement($collections);
-
       //extract communities result array
-      foreach ($xml->children() as $collection) {
-        $result[(string)$collection->UUID] = (string)$collection->name . ' <strong>(' . $collection->numberItems . ')</strong> ' . $this->formatPlural((string)$collection->numberItems, t('item'), t('items'));
+      foreach ($xml->_embedded->collections as $collection) {
+        $result[(string)$collection->uuid] = (string)$collection->name . ' <strong>(' . $collection->archivedItemsCount . ')</strong> ' . $this->formatPlural((string)$collection->archivedItemsCount, t('item'), t('items'));
       }
     }
     catch(\Exception $ex) {
@@ -67,12 +67,12 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
-  public function getCommunityName($community) {
+  public function getCommunityName($community): string {
 
     $result = '';
 
     try {
-      $community = $this->getData($this->endpoint . '/rest/communities/' . $community);
+      $community = $this->getData($this->endpoint . '/server/api/core/communities/' . $community);
 
       $xml = new \SimpleXMLElement($community);
 
@@ -86,15 +86,18 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   }
 
-  public function getCollectionNumberItems($collection) {
-    $collection = $this->getData("$this->endpoint/rest/collections/$collection");
+  /**
+   * @throws \Exception
+   */
+  public function getCollectionNumberItems($collection): string {
+    $collection = $this->getData("$this->endpoint/server/api/core/collections/$collection");
 
     $xml = new \SimpleXMLElement($collection);
 
-    return (string) $xml->numberItems;
+    return (string) $xml->archivedItemsCount;
   }
 
-  public function getItems($collection, $number_items) {
+  public function getItems($collection, $number_items): array {
 
     print "Listing items for collection $collection\n";
 
@@ -111,12 +114,15 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
+  /**
+   * @throws \Exception
+   */
   private function getPagedItems($collection, $number_items, $offset=0, $result = []) {
-    $items = $this->getData("$this->endpoint/rest/collections/$collection/items?limit=100&offset=$offset");
+    $items = $this->getData("$this->endpoint/server/api/core/collections/$collection/mappedItems?size=100&offset=$offset");
     $xml = new \SimpleXMLElement($items);
 
-    foreach ($xml->children() as $item) {
-      $result[] = (string)$item->UUID;
+    foreach ($xml->_embedded->mappedItems as $item) {
+      $result[] = (string)$item->uuid;
     }
 
     if($offset+100 < $number_items) {
@@ -128,10 +134,9 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   }
 
-  public function getItem($item) {
-    $xml = $this->getData("$this->endpoint/rest/items/$item?expand=all");
+  public function getItem($item): string {
     // remove XML header
-    return $xml;
+    return $this->getData("$this->endpoint/server/api/core/items/$item?embed=*");
   }
 
 
