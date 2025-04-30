@@ -1,3 +1,10 @@
+cgspace_importer:
+  path: '/admin/config/cgspace'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'CGSpace'
+  requirements:
+    _permission: 'administer webform donation settings'
 cgspace_importer.settings:
   path: '/admin/config/cgspace/settings'
   defaults:
@@ -17,3 +24,10 @@ cgspace_importer.sync_cgspace_publications:
     _controller: '\Drupal\cgspace_importer\Controller\SyncContentController::syncPublications'
   requirements:
     _permission: 'sync content from CGSpace'
+cgspace_importer.processors:
+  path: '/admin/config/cgspace/processors'
+  defaults:
+    _form: '\Drupal\cgspace_importer\Form\ProcessorsSettingsForm'
+    _title: 'CGSpace Processors Settings'
+  requirements:
+    _permission: 'administer cgspace'

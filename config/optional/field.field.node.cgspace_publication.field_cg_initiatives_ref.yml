@@ -2,14 +2,14 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_cg_publication_year_ref
+    - field.storage.node.field_cg_initiatives_ref
     - node.type.cgspace_publication
-    - taxonomy.vocabulary.cgspace_publication_year
-id: node.cgspace_publication.field_cg_publication_year_ref
-field_name: field_cg_publication_year_ref
+#    - taxonomy.vocabulary.initiative
+id: node.cgspace_publication.field_cg_initiatives_ref
+field_name: field_cg_initiatives_ref
 entity_type: node
 bundle: cgspace_publication
-label: 'Publication year'
+label: 'CGIAR Research Initiatives'
 description: ''
 required: false
 translatable: false
@@ -19,7 +19,7 @@ settings:
   handler: 'default:taxonomy_term'
   handler_settings:
     target_bundles:
-      cgspace_publication_year: cgspace_publication_year
+#      initiative: initiative
     sort:
       field: name
       direction: asc

@@ -250,6 +250,17 @@ process:
       source: '@image_url'
       destination: '@image_filename'
       skip_on_missing_source: true
+  field_cg_initiatives_ref:
+    -
+      plugin: map_cgiar_research_initiatives
+      source: initiative
+  field_cg_impact_areas_ref:
+    -
+      plugin: map_cgiar_impact_areas
+      source: subjects
+#  field_cg_regions_ref:
+#    - plugin: map_cgiar_regions
+#      source: regions
 #  field_cg_authors_ref:
 #    -
 #      plugin: map_authors_to_users
@@ -267,12 +278,6 @@ process:
 #      plugin: map_terms
 #      vocabulary: tag
 #      create: false
-#  field_initiatives_ref:
-#    -
-#      plugin: map_publication_cgiar_research_initiatives
-#      source: initiative
-#      vocabulary: initiative
-#      create: false
 #  field_projects_ref:
 #    -
 #      plugin: skip_on_empty
@@ -281,24 +286,6 @@ process:
 #    -
 #      plugin: map_terms
 #      vocabulary: publication_projects
-#      create: false
-#  field_regions_ref:
-#    - plugin: map_publication_regions
-#      source: regions
-#      vocabulary: region
-#      create: false
-#  field_impact_areas_ref:
-#    -
-#      plugin: skip_on_empty
-#      method: process
-#      source: subjects
-#    -
-#      plugin: explode
-#      delimiter: ', '
-#      source: subjects
-#    -
-#      plugin: map_publication_impact_areas
-#      vocabulary: impact_area
 #      create: false
 destination:
   plugin: 'entity:node'

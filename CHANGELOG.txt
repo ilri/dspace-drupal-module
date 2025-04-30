@@ -1,0 +1,4 @@
+# Version 1.0.5
+• Added CGIAR Research Initiatives and CGIAR Impact Areas term reference fields
+• Added configuration form to map Research Initiatives and Impact Areas to existing vocabulary or new vocabulary
+
