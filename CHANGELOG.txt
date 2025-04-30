@@ -1,3 +1,5 @@
+# Version 1.0.6
+• Added type to construct argument on CGSpaceSettingsForm class to match base ConfigFormBase class
 # Version 1.0.5
 • Added CGIAR Research Initiatives and CGIAR Impact Areas term reference fields
 • Added configuration form to map Research Initiatives and Impact Areas to existing vocabulary or new vocabulary
