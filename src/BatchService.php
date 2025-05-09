@@ -18,13 +18,12 @@ class BatchService {
     // Retrieve the necessary services from the container.
     $configFactory = \Drupal::service('config.factory');
     $httpClient = \Drupal::service('http_client');
-    $serializer = \Drupal::service('serializer');
 
     // Get the endpoint from the configuration.
     $endpoint = $configFactory->get('cgspace_importer.settings')->get('endpoint');
 
     // Instantiate the CGSpaceProxy with the required dependencies.
-    $proxy = new CGSpaceProxy($endpoint, $configFactory, $httpClient, $serializer);
+    $proxy = new CGSpaceProxy($endpoint, $configFactory, $httpClient);
 
     $context['results'][] = $proxy->getItem($item_id);
 
@@ -45,34 +44,15 @@ class BatchService {
     if ($success) {
       \Drupal::messenger()->addMessage(t("Contents are successfully synced from CGSpace."));
 
-      $document = new \DOMDocument();
-      $items = $document->createElement('items');
-      $document->appendChild($items);
-
-      foreach ($results as $item) {
-
-        try {
-          $item_xml = new \SimpleXMLElement($item);
-          $dom_item_xml = dom_import_simplexml($item_xml);
-          $dom_item_xml = $document->importNode($dom_item_xml, TRUE);
-          $items->appendChild($dom_item_xml);
-        }
-        catch (\Exception $e) {
-          \Drupal::logger('widget')->error($e->getMessage());
-        }
-      }
-
-      $content = $document->saveXML();
-
-      $destination = 'public://cgspace-proxy.xml';
-      if (\Drupal::service('file.repository')->writeData($content, $destination, FileExists::Rename)) {
-        \Drupal::messenger()->addMessage(t('DSpace Proxy XML file created <a href="@destination">here</a>.', array('@destination' => \Drupal::service('file_url_generator')->generateAbsoluteString($destination) )));
+      $destination = 'public://cgspace-proxy.json';
+      if (\Drupal::service('file.repository')->writeData(json_encode($results, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK), $destination, FileExists::Replace)) {
+        \Drupal::messenger()->addMessage(t('DSpace Proxy JSON file created <a href="@destination">here</a>.', array('@destination' => \Drupal::service('file_url_generator')->generateAbsoluteString($destination) )));
 
         //$redirect = new RedirectResponse('/admin/content/cgspace-sync-publications');
         //$redirect->send();
       }
       else {
-        \Drupal::messenger()->addError(t('An error as occurred while saving the result XML file'));
+        \Drupal::messenger()->addError(t('An error as occurred while saving the result JSON file'));
       }
 
     }

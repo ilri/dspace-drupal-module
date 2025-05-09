@@ -7,25 +7,21 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Queue\RequeueException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
-use Symfony\Component\Serializer\SerializerInterface;
 
 Class CGSpaceProxyBase {
 
   protected $endpoint;
   protected ClientInterface $httpClient;
-  protected SerializerInterface $serializer;
 
-  public function __construct($endpoint, ConfigFactoryInterface $configFactory, ClientInterface $httpClient, SerializerInterface $serializer) {
+  public function __construct($endpoint, ConfigFactoryInterface $configFactory, ClientInterface $httpClient) {
     $this->endpoint = empty($endpoint)? $configFactory->get('cgspace_importer.settings')->get('endpoint') : $endpoint;
     $this->httpClient = $httpClient;
-    $this->serializer = $serializer;
   }
 
   public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('config.factory'),
       $container->get('http_client'),
-      $container->get('cgspace_importer.serializer'),
     );
   }
 
@@ -37,15 +33,13 @@ Class CGSpaceProxyBase {
     try {
       $request = $this->httpClient->request('GET', $url, [
         'headers' => [
-         //'Accept' => 'application/xml',
           'User-Agent' => $importer." Publications Importer BOT"
         ],
         'timeout' => 60000,
       ]);
       $status = $request->getStatusCode();
       $resultJson = $request->getBody()->getContents();
-      $decodedResult = json_decode($resultJson, true);
-      $result = $this->serializer->serialize($decodedResult, 'xml');
+      $result = json_decode($resultJson, true);
 
       if (!$result || $status != 200) {
         throw new RequeueException();

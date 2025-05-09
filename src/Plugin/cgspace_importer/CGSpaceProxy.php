@@ -14,10 +14,8 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     try {
       $communities = $this->getData($this->endpoint . '/server/api/core/communities/search/top?size=1000');
 
-      $xml = new \SimpleXMLElement($communities);
-
-      foreach ($xml->_embedded->communities as $community) {
-        $result[(string)$community->uuid] = (string)$community->name . ' <strong>(' . (string)$community->archivedItemsCount . ')</strong>';
+      foreach ($communities["_embedded"]["communities"] as $community) {
+        $result[(string)$community["uuid"]] = (string)$community["name"] . ' <strong>(' . (string)$community["archivedItemsCount"] . ')</strong>';
       }
     }
     catch(\Exception $ex) {
@@ -33,11 +31,9 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     try {
       $communities = $this->getData("$this->endpoint/server/api/core/communities/$community/subcommunities?size=1000");
 
-      $xml = new \SimpleXMLElement($communities);
-
-      foreach ($xml->_embedded->subcommunities as $community) {
+      foreach ($communities["_embedded"]["subcommunities"] as $community) {
         if(!empty($community))
-          $result[(string)$community->uuid] = (string)$community->name . ' <strong>(' . (string)$community->archivedItemsCount . ')</strong>';
+          $result[(string)$community["uuid"]] = (string)$community["name"] . ' <strong>(' . (string)$community["archivedItemsCount"] . ')</strong>';
       }
     }
     catch(\Exception $ex) {
@@ -54,10 +50,9 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     try {
       $collections = $this->getData("$this->endpoint/server/api/core/communities/$community/collections?size=1000");
 
-      $xml = new \SimpleXMLElement($collections);
       //extract communities result array
-      foreach ($xml->_embedded->collections as $collection) {
-        $result[(string)$collection->uuid] = (string)$collection->name . ' <strong>(' . $collection->archivedItemsCount . ')</strong> ' . $this->formatPlural((string)$collection->archivedItemsCount, t('item'), t('items'));
+      foreach ($collections["_embedded"]["collections"] as $collection) {
+        $result[(string)$collection["uuid"]] = (string)$collection["name"] . ' <strong>(' . $collection["archivedItemsCount"] . ')</strong> ' . $this->formatPlural((string)$collection["archivedItemsCount"], t('item'), t('items'));
       }
     }
     catch(\Exception $ex) {
@@ -74,9 +69,8 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     try {
       $community = $this->getData($this->endpoint . '/server/api/core/communities/' . $community);
 
-      $xml = new \SimpleXMLElement($community);
 
-      $result = (string)$xml->name;
+      $result = (string) $community["name"];
     }
     catch(\Exception $ex) {
       print $ex->getMessage();
@@ -92,9 +86,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
   public function getCollectionNumberItems($collection): string {
     $collection = $this->getData("$this->endpoint/server/api/core/collections/$collection");
 
-    $xml = new \SimpleXMLElement($collection);
-
-    return (string) $xml->archivedItemsCount;
+    return (string) $collection["archivedItemsCount"];
   }
 
   public function getItems($collection, $number_items): array {
@@ -119,10 +111,9 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
    */
   private function getPagedItems($collection, $number_items, $offset=0, $result = []) {
     $items = $this->getData("$this->endpoint/server/api/core/collections/$collection/mappedItems?size=100&offset=$offset");
-    $xml = new \SimpleXMLElement($items);
 
-    foreach ($xml->_embedded->mappedItems as $item) {
-      $result[] = (string)$item->uuid;
+    foreach ($items['_embedded']['mappedItems'] as $item) {
+      $result[] = (string)$item["uuid"];
     }
 
     if($offset+100 < $number_items) {
@@ -136,7 +127,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   public function getItem($item): string {
     // remove XML header
-    return $this->getData("$this->endpoint/server/api/core/items/$item?embed=*");
+    return json_encode($this->getData("$this->endpoint/server/api/core/items/$item?embed=bundles/bitstreams,mappedCollections/parentCommunity"));
   }
 
 

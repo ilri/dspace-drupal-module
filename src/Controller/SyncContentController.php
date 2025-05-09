@@ -18,7 +18,6 @@ use Drupal\migrate\MigrateMessage;
 
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\Serializer\SerializerInterface;
 
 class SyncContentController extends ControllerBase implements ContainerInjectionInterface{
 
@@ -27,18 +26,17 @@ class SyncContentController extends ControllerBase implements ContainerInjection
   private $collections;
   private $proxy;
 
-  public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $httpClient, SerializerInterface $serializer) {
+  public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $httpClient) {
     $this->endpoint = $configFactory->get('cgspace_importer.settings')->get('endpoint');
     $this->collections = $configFactory->get('cgspace_importer.settings.collections')->get();
-    $this->proxy = new CGSpaceProxy($this->endpoint, $configFactory, $httpClient, $serializer);
+    $this->proxy = new CGSpaceProxy($this->endpoint, $configFactory, $httpClient);
   }
 
 
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('http_client'),
-      $container->get('serializer')
+      $container->get('http_client')
     );
   }
 

@@ -7,7 +7,6 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drush\Commands\DrushCommands;
 use Drupal\cgspace_importer\Controller\SyncContentController;
 use GuzzleHttp\ClientInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 /**
  * A Drush commandfile.
  */
@@ -17,11 +16,11 @@ class SyncContentCommand extends DrushCommands {
   protected $collections;
   protected $proxy;
 
-  public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $httpClient, SerializerInterface $serializer) {
+  public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $httpClient) {
     parent::__construct();
     $this->endpoint = $configFactory->get('cgspace_importer.settings')->get('endpoint');
     $this->collections = $configFactory->get('cgspace_importer.settings.collections')->get();
-    $this->proxy = new CGSpaceProxy($this->endpoint, $configFactory, $httpClient, $serializer);
+    $this->proxy = new CGSpaceProxy($this->endpoint, $configFactory, $httpClient);
   }
   /**
    * Echos back hello with the argument provided.

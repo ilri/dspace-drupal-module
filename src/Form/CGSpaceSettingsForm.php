@@ -28,7 +28,7 @@ class CGSpaceSettingsForm extends ConfigFormBase {
   private $endpoint;
   private $proxy;
 
-  public function __construct(ConfigFactoryInterface $configFactory, protected TypedConfigManagerInterface $typedConfigManager, CGSpaceProxy $proxy)
+  public function __construct(ConfigFactoryInterface $configFactory, protected $typedConfigManager, CGSpaceProxy $proxy)
   {
     parent::__construct($configFactory, $typedConfigManager);
     $this->proxy = $proxy;
@@ -43,8 +43,7 @@ class CGSpaceSettingsForm extends ConfigFormBase {
       new CGSpaceProxy(
         $endpoint,
         $container->get('config.factory'),
-        $container->get('http_client'),
-        $container->get('cgspace_importer.serializer')
+        $container->get('http_client')
       ),
     );
   }
