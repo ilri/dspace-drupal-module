@@ -1,8 +1,13 @@
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  module:
+    - cgspace_importer
+  enforced:
+    module:
+      - cgspace_importer
 id: cgspace_importer
 label: 'Import Publications from CGSpace'
 description: 'Migration Manually generated to import from CGSpace XML feed'
-source_type: 'XML'
+source_type: 'JSON resource'
 module: null

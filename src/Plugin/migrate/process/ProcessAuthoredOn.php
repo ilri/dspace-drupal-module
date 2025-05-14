@@ -26,6 +26,7 @@ class ProcessAuthoredOn extends ProcessPluginBase {
     if (isset($value)) {
 
       if(is_string($value)) {
+
         $date_parts = explode('-', $value);
 
         if (count($date_parts) === 1) {

@@ -31,7 +31,7 @@ class BatchService {
     $context['message'] = t('Getting publication <a href="@url" target="_blank">@title</a>', [
       '@id' => $item_id,
       '@url' => 'https://cgspace.cgiar.org/server/api/core/items/'.$item_id,
-      '@title' => 'https://cgspace.cgiar.org/server/api/core/items'.$item_id,
+      '@title' => 'https://cgspace.cgiar.org/server/api/core/items/'.$item_id,
     ]);
 
   }
@@ -45,7 +45,16 @@ class BatchService {
       \Drupal::messenger()->addMessage(t("Contents are successfully synced from CGSpace."));
 
       $destination = 'public://cgspace-proxy.json';
-      if (\Drupal::service('file.repository')->writeData(json_encode($results, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK), $destination, FileExists::Replace)) {
+      if (\Drupal::service('file.repository')->writeData(
+        json_encode(
+          [
+            'items' => $results
+          ],
+          JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK),
+          $destination,
+          FileExists::Replace
+        )
+      ) {
         \Drupal::messenger()->addMessage(t('DSpace Proxy JSON file created <a href="@destination">here</a>.', array('@destination' => \Drupal::service('file_url_generator')->generateAbsoluteString($destination) )));
 
         //$redirect = new RedirectResponse('/admin/content/cgspace-sync-publications');

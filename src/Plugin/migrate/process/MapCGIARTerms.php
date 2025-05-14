@@ -24,13 +24,13 @@ class MapCGIARTerms extends ProcessPluginBase {
 
     if(is_array($fields)) {
 
-      if (isset($value)) {
+      if (!empty($value)) {
         $term = $this->getTerm($value);
         if($term instanceof Term) {
           return $term->id();
         }
         else {
-          throw new MigrateException('Unable to map ' . static::$LABEL .' '.$value);
+          throw new MigrateException('Unable to map ' . static::$LABEL .' "'.$value.'"');
         }
       }
     }

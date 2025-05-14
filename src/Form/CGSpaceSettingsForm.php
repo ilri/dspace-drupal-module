@@ -28,7 +28,7 @@ class CGSpaceSettingsForm extends ConfigFormBase {
   private $endpoint;
   private $proxy;
 
-  public function __construct(ConfigFactoryInterface $configFactory, protected $typedConfigManager, CGSpaceProxy $proxy)
+  public function __construct(ConfigFactoryInterface $configFactory, protected TypedConfigManagerInterface $typedConfigManager, CGSpaceProxy $proxy)
   {
     parent::__construct($configFactory, $typedConfigManager);
     $this->proxy = $proxy;

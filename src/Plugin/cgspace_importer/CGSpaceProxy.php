@@ -113,7 +113,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     $items = $this->getData("$this->endpoint/server/api/core/collections/$collection/mappedItems?size=100&offset=$offset");
 
     foreach ($items['_embedded']['mappedItems'] as $item) {
-      $result[] = (string)$item["uuid"];
+      $result[] = $item["uuid"];
     }
 
     if($offset+100 < $number_items) {
@@ -125,9 +125,49 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   }
 
-  public function getItem($item): string {
+  public function getItem($item): array {
     // remove XML header
-    return json_encode($this->getData("$this->endpoint/server/api/core/items/$item?embed=bundles/bitstreams,mappedCollections/parentCommunity"));
+    $item = $this->getData("$this->endpoint/server/api/core/items/$item?embed=bundles/bitstreams,mappedCollections/parentCommunity");
+    return $this->getItemBitstreams($item);
+  }
+
+  /**
+   * Searches for bitstream Thumbnail and PDF and add them to item as root elements to avoid not supported jsonpath expressions no migrate importer
+   * @param array $item
+   * the item associative array
+   * @return array
+   * the item associative array with picture and attachment root elements
+   */
+  private function getItemBitstreams(array $item): array {
+
+    if(isset($item['_embedded']['bundles']['_embedded']['bundles'])) {
+      foreach($item['_embedded']['bundles']['_embedded']['bundles'] as $bundle) {
+        if(isset($bundle['_embedded']['bitstreams']['_embedded']['bitstreams'])) {
+          foreach($bundle['_embedded']['bitstreams']['_embedded']['bitstreams'] as $bitstream) {
+            if(isset($bitstream['bundleName']) && ($bitstream['bundleName'] === 'ORIGINAL')) {
+              if(isset($bitstream['_links']['thumbnail']['href'])) {
+                $thumbnail = $this->getData($bitstream['_links']['thumbnail']['href']);
+                if(isset($thumbnail['_links']['content']['href'])) {
+                  $item['picture'] = [
+                    'name' => $thumbnail['name'],
+                    'uri' => $thumbnail['_links']['content']['href']
+                  ];
+                }
+              }
+
+              if(isset($bitstream['_links']['content']['href'])) {
+                $item['attachment'] = [
+                  'name' => $bitstream['name'],
+                  'uri' => $bitstream['_links']['content']['href']
+                ];
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return $item;
   }
 
 

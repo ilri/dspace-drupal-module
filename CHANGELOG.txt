@@ -1,3 +1,6 @@
+# Version 1.0.9
+• Changed BatchService to return a JSON with root element
+• Updated migration importer to use JSON proxy file
 # Version 1.0.6
 • Added type to construct argument on CGSpaceSettingsForm class to match base ConfigFormBase class
 # Version 1.0.5

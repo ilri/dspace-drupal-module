@@ -1,6 +1,8 @@
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  module:
+    - cgspace_importer
 id: cgspace_publication_importer
 migration_tags:
   - 'CGSpace'
@@ -11,15 +13,15 @@ source:
   plugin: url
   data_fetcher_plugin: file
   urls:
-    - '/sites/default/files/cgspace-proxy.xml'
-  data_parser_plugin: simple_xml
+    - '/sites/default/files/cgspace-proxy.json'
+  data_parser_plugin: json
 
-  item_selector: /items/item
+  item_selector: items
   fields:
     -
       name: guid
       label: GUID
-      selector: UUID
+      selector: uuid
     -
       name: title
       label: Title
@@ -27,83 +29,88 @@ source:
     -
       name: authors
       label: 'Author(s)'
-      selector: 'metadata/key[ text() = "dc.contributor.author"]/../value'
+      selector: 'metadata/dc.contributor.author/0/value'
     -
       name: keywords
       label: 'Keywords'
-      selector: 'metadata/key[ text() = "cg.subject.ilri"]/../value'
+      selector: 'metadata/cg.subject.ilri/0/value'
     -
       name: subjects
       label: 'Subjects'
-      selector: 'metadata/key[ text() = "cg.subject.ilri"]/../value'
+      selector: 'metadata/cg.subject.ilri/0/value'
     -
       name: publisher
       label: 'Publisher'
-      selector: 'metadata/key[ text() = "dcterms.publisher"]/../value'
+      selector: 'metadata/dcterms.publisher/0/value'
     -
       name: citation
       label: 'Citation'
-      selector: 'metadata/key[ text() = "dcterms.bibliographicCitation"]/../value'
+      selector: 'metadata/dcterms.bibliographicCitation/0/value'
     -
       name: series
       label: 'Series/Report No.'
-      selector: 'metadata/key[ text() = "dcterms.isPartOf"]/../value'
+      selector: 'metadata/dcterms.isPartOf/0/value'
     -
+      #Check if we have multiple abstracts
       name: abstract
       label: 'Abstract'
-      selector: '(metadata/key[ text() = "dcterms.abstract"])[1]/../value'
+      selector: 'metadata/dcterms.abstract/0/value'
     -
+      #Check if we have multiple permalink
       name: permalink
       label: 'Permanent Link: URL'
-      selector: '(metadata/key[ text() = "dc.identifier.uri"])[1]/../value'
+      selector: 'metadata/dc.identifier.uri/0/value'
     -
       name: status
       label: 'Status'
-      selector: 'metadata/key[ text() = "dcterms.accessRights"]/../value'
+      selector: 'metadata/dcterms.accessRights/0/value'
     -
       name: regions
       label: 'Regions'
-      selector: 'metadata/key[ text() = "cg.coverage.country"]/../value'
+      selector: 'metadata/cg.coverage.country/0/value'
     -
       name: research_programs
       label: 'Research Programs'
-      selector: 'parentCommunityList/name'
+      selector: '_embedded/mappedCollections/_embedded/mappedCollections/*/name'
     -
       name: hubs
       label: 'Hubs'
-      selector: 'parentCommunityList/name'
+      selector: '_embedded/mappedCollections/_embedded/mappedCollections/*/name'
     -
       name: type
       label: 'Type'
-      selector: 'metadata/key[ text() = "dcterms.type"]/../value'
+      selector: 'metadata/dcterms.type/0/value'
     -
       name: language
       label: 'Language'
-      selector: 'metadata/key[ text() = "dcterms.language"]/../value'
+      selector: 'metadata/dcterms.language/0/value'
     -
       name: download_url
       label: 'Downloads: URL'
-      selector: '(bitstreams/bundleName[ text() = "ORIGINAL" ]/../mimeType[ text() = "application/pdf" or text() = "application/octet-stream"]/../name)[1]'
+      selector: 'attachment/uri'
     -
       name: download_title
       label: 'Downloads: Title'
-      selector: '(bitstreams/bundleName[ text() = "ORIGINAL" ]/../mimeType[ text() = "application/pdf" or text() = "application/octet-stream"]/../description)[1]'
+      selector: 'attachment/name'
+
     -
+      #check we have multiple
       name: link_to_documents_url
       label: 'Link to documents: URL'
-      selector: '(metadata/key[ text() = "cg.identifier.url"]/../value)[1]'
+      selector: 'metadata/cg.identifier.url/0/value'
     -
+      #check we have multiple
       name: link_to_journal_url
       label: 'Link to journal: URL'
-      selector: '(metadata/key[ text() = "cg.identifier.doi"]/../value)[1]'
+      selector: 'metadata/cg.identifier.doi/0/value'
     -
       name: published_on
       label: 'Published on'
-      selector: 'metadata/key[ text() = "dcterms.issued"]/../value'
+      selector: 'metadata/dcterms.issued/0/value'
     -
       name: published_year
       label: 'Published on (year)'
-      selector: 'metadata/key[ text() = "dcterms.issued"]/../value'
+      selector: 'metadata/dcterms.issued/0/value'
     -
       name: handle
       label: 'Handle'
@@ -111,27 +118,28 @@ source:
     -
       name: projects
       label: 'Projects'
-      selector: 'parentCollectionList/name'
+      selector: '_embedded/mappedCollections/_embedded/mappedCollections/*/name'
     -
       name: picture_uri
       label: 'Picture: URI'
-      selector: '(bitstreams/bundleName[ text() = "THUMBNAIL" ])[1]/../retrieveLink'
+      selector: 'picture/uri'
     -
       name: picture_name
       label: 'Picture: Name'
-      selector: '(bitstreams/bundleName[ text() = "THUMBNAIL" ])[1]/../name'
+      selector: 'picture/name'
     -
       name: doi
       label: 'DOI'
-      selector: 'metadata/key[ text() = "cg.identifier.doi"]/../value'
+      selector: 'metadata/cg.identifier.doi/0/value'
     -
+      #check we have multiple
       name: info_note
       label: 'Info Note'
-      selector: '(metadata/key[ text() = "dcterms.isPartOf"]/../value)[1]'
+      selector: 'metadata/dcterms.isPartOf/0/value'
     -
       name: initiative
       label: 'CGIAR Initiative'
-      selector: 'metadata/key[ text() = "cg.contributor.initiative"]/../value'
+      selector: 'metadata/cg.contributor.initiative/0/value'
 
   ids:
     guid:
@@ -206,34 +214,13 @@ process:
       source: doi
   field_cg_link_journal/uri: link_to_journal_url
   field_cg_link_document/uri: link_to_documents_url
-  field_cg_download_link/uri:
-    -
-      plugin: skip_on_empty
-      method: process
-      source: download_url
-    -
-      plugin: concat
-      source:
-        - constants/cgspace_url
-        - handle
-        - download_url
-      delimiter: /
+  field_cg_download_link/uri: download_url
   field_cg_download_link/title: download_title
   field_cg_countries:
     -
       plugin: map_countries
       source: regions
-  image_url:
-    -
-      plugin: skip_on_empty
-      method: process
-      source: picture_uri
-    -
-      plugin: concat
-      source:
-        - constants/cgspace_base_url
-        - constants/cgspace_rest_url
-        - picture_uri
+
   image_filename:
     -
       plugin: skip_on_empty
@@ -247,7 +234,7 @@ process:
   field_cg_image:
     -
       plugin: image_import
-      source: '@image_url'
+      source: picture_uri
       destination: '@image_filename'
       skip_on_missing_source: true
   field_cg_initiatives_ref:
