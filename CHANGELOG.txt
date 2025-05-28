@@ -1,3 +1,5 @@
+# Version 1.0.10
+• Replaced mappedItems with search results
 # Version 1.0.9
 • Changed BatchService to return a JSON with root element
 • Updated migration importer to use JSON proxy file
