@@ -1,3 +1,8 @@
+# Version 1.0.11
+• Added Tags vocabulary field and mapping functionality
+• Processors Settings Form refactoring
+• Made Bitstream request tolerant to 401 error
+• Added Authors map submodule with LDAP
 # Version 1.0.10
 • Replaced mappedItems with search results
 # Version 1.0.9

@@ -1,0 +1,57 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - cgspace_importer_ldap
+id: cgspace_publication_authors_importer
+migration_tags:
+  - 'CGSpace'
+  - Content
+migration_group: cgspace_importer
+label: 'Imports (Publication) Authors from CGSpace Json Feed'
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  urls:
+    - '/sites/default/files/cgspace-proxy.json'
+  data_parser_plugin: json
+
+  item_selector: items
+  fields:
+    -
+      name: guid
+      label: GUID
+      selector: uuid
+    -
+      name: title
+      label: Title
+      selector: name
+    -
+      name: authors
+      label: 'Author(s)'
+      selector: 'metadata/dc.contributor.author/0/value'
+  ids:
+    guid:
+      type: string
+
+process:
+  nid:
+    -
+      plugin: entity_lookup
+      source: title
+      value_key: title
+      entity_type: node
+      bundle_key: type
+      bundle: cgspace_publication
+
+  field_cg_authors_ref:
+    -
+      plugin: map_cgiar_authors_to_users
+      source: authors
+
+destination:
+  plugin: 'entity:node'
+  default_bundle: cgspace_publication
+  overwrite_properties:
+    - field_cg_authors_ref
+

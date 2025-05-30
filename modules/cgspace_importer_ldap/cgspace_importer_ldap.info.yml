@@ -1,0 +1,10 @@
+name: CGSpace Publications Authors Importer
+type: module
+description: 'Tries to map authors from CGSpace to users in the system'
+core: 8.x
+core_version_requirement: ^8 || ^9 || ^10 || ^11
+dependencies:
+  - cgspace_importer
+  - ldap
+package: 'Content'
+configure: cgspace_importer.settings

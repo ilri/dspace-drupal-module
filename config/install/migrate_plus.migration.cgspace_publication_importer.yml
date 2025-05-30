@@ -8,7 +8,7 @@ migration_tags:
   - 'CGSpace'
   - Content
 migration_group: cgspace_importer
-label: 'Imports (Publication) Nodes from CGSpace XML Feed'
+label: 'Imports (Publication) Nodes from CGSpace JSON Feed'
 source:
   plugin: url
   data_fetcher_plugin: file
@@ -245,6 +245,10 @@ process:
     -
       plugin: map_cgiar_impact_areas
       source: subjects
+  field_cg_tags_ref:
+    -
+      plugin: map_cgiar_tags
+      source: subjects
 #  field_cg_regions_ref:
 #    - plugin: map_cgiar_regions
 #      source: regions
@@ -252,19 +256,6 @@ process:
 #    -
 #      plugin: map_authors_to_users
 #      source: authors
-#  field_tags_ref:
-#    -
-#      plugin: skip_on_empty
-#      method: process
-#      source: keywords
-#    -
-#      plugin: explode
-#      delimiter: ', '
-#      source: keywords
-#    -
-#      plugin: map_terms
-#      vocabulary: tag
-#      create: false
 #  field_projects_ref:
 #    -
 #      plugin: skip_on_empty

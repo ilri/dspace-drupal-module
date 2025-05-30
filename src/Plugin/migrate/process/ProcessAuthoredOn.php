@@ -25,7 +25,7 @@ class ProcessAuthoredOn extends ProcessPluginBase {
 
     if (isset($value)) {
 
-      if(is_string($value)) {
+      if(!empty($value)) {
 
         $date_parts = explode('-', $value);
 
@@ -49,11 +49,11 @@ class ProcessAuthoredOn extends ProcessPluginBase {
           $result = $date->format($format);
         }
         else {
-          throw new MigrateException('Unable to convert $value to a valid timestamp');
+          throw new MigrateException('Unable to convert '.$value.' to a valid timestamp');
         }
       }
       else {
-        throw new MigrateException('Unable to convert $value to a valid timestamp');
+        throw new MigrateException('Unable to convert '.$value.' to a valid timestamp');
       }
     }
     else {

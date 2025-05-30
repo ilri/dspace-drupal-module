@@ -1,0 +1,29 @@
+<?php
+use Drupal\migrate_plus\Entity\Migration;
+
+function cgspace_importer_ldap_install()
+{
+
+  $migration = Migration::load('cgspace_publication_authors_importer');
+  if ($migration) {
+    $source = $migration->get('source');
+    $request = \Drupal::request();
+    $urls = [];
+    foreach ($source['urls'] as $url) {
+      $urls[] = $request->getSchemeAndHttpHost() . $url;
+    }
+    $source['urls'] = $urls;
+    $migration->set('source', $source);
+    $migration->save();
+  }
+
+}
+
+function cgspace_importer_ldap_uninstall() {
+
+  \Drupal::database()->delete('config')
+    ->condition('name', 'migrate_plus.migration.cgspace_publication_authors_importer')
+    ->execute();
+
+  drupal_flush_all_caches();
+}
