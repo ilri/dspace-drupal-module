@@ -110,7 +110,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
    * @throws \Exception
    */
   private function getPagedItems($collection, $number_items, $offset=0, $result = []) {
-    $items = $this->getData("$this->endpoint/server/api/discover/search/objects?f=collection,equals,$collection&size=100&offset=$offset");
+    $items = $this->getData("$this->endpoint/server/api/discover/search/objects?dsoType=item&scope=$collection&size=100&offset=$offset");
 
     foreach ($items['_embedded']['searchResult']['_embedded']['objects'] as $item) {
       $result[] = $item['_embedded']['indexableObject']['uuid'];

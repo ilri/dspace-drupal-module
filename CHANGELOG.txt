@@ -1,3 +1,5 @@
+# Version 1.0.12
+• Changed API call for items of collection through search in order to return results correctly
 # Version 1.0.11
 • Added Tags vocabulary field and mapping functionality
 • Processors Settings Form refactoring
@@ -8,6 +10,10 @@
 # Version 1.0.9
 • Changed BatchService to return a JSON with root element
 • Updated migration importer to use JSON proxy file
+# Version 1.0.8
+• Removed conversion to XML in order to use JSON only
+# Version 1.0.7
+• Fixed composer.json version
 # Version 1.0.6
 • Added type to construct argument on CGSpaceSettingsForm class to match base ConfigFormBase class
 # Version 1.0.5
