@@ -1,3 +1,5 @@
+# Version 1.0.13
+• Change API to use page instead offset
 # Version 1.0.12
 • Changed API call for items of collection through search in order to return results correctly
 # Version 1.0.11
