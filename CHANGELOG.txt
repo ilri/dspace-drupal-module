@@ -1,3 +1,5 @@
+# Version 1.0.15
+• Switched from fixed default file path to stream wrapper so that multisite setups can work
 # Version 1.0.14
 • Improved description of the Importer's field in Settings Form
 • Updated CGSpaceSettingsForm construct argument to work with Drupal 10.2 and up
