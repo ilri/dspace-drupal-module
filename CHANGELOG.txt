@@ -1,3 +1,6 @@
+# Version 1.0.14
+• Improved description of the Importer's field in Settings Form
+• Updated CGSpaceSettingsForm construct argument to work with Drupal 10.2 and up
 # Version 1.0.13
 • Change API to use page instead offset
 # Version 1.0.12

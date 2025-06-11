@@ -28,7 +28,7 @@ class CGSpaceSettingsForm extends ConfigFormBase {
   private $endpoint;
   private $proxy;
 
-  public function __construct(ConfigFactoryInterface $configFactory, protected TypedConfigManagerInterface $typedConfigManager, CGSpaceProxy $proxy)
+  public function __construct(ConfigFactoryInterface $configFactory, TypedConfigManagerInterface $typedConfigManager, CGSpaceProxy $proxy)
   {
     parent::__construct($configFactory, $typedConfigManager);
     $this->proxy = $proxy;
@@ -103,7 +103,7 @@ class CGSpaceSettingsForm extends ConfigFormBase {
     $form['importer'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Importer ID'),
-      '#description' => $this->t('The CGSpace Importer ID sent as Header to REST API.'),
+      '#description' => $this->t('The CGSpace Importer ID sent as User-Agent Header to REST API in format "YOUR_VALUE Publications Importer BOT".'),
       '#default_value' => $this->config(static::SETTINGS)->get('importer'),
       '#required' => true,
     ];

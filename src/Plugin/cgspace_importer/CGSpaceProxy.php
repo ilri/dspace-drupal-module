@@ -31,9 +31,9 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     try {
       $communities = $this->getData("$this->endpoint/server/api/core/communities/$community/subcommunities?size=1000");
 
-      foreach ($communities["_embedded"]["subcommunities"] as $community) {
-        if(!empty($community))
-          $result[(string)$community["uuid"]] = (string)$community["name"] . ' <strong>(' . (string)$community["archivedItemsCount"] . ')</strong>';
+      foreach ($communities["_embedded"]["subcommunities"] as $subCommunity) {
+        if(!empty($subCommunity))
+          $result[(string)$subCommunity["uuid"]] = (string)$subCommunity["name"] . ' <strong>(' . (string)$subCommunity["archivedItemsCount"] . ')</strong>';
       }
     }
     catch(\Exception $ex) {
