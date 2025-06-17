@@ -7,10 +7,10 @@ function cgspace_importer_ldap_install()
   $migration = Migration::load('cgspace_publication_authors_importer');
   if ($migration) {
     $source = $migration->get('source');
-    $request = \Drupal::request();
     $urls = [];
-    foreach ($source['urls'] as $url) {
-      $urls[] = $request->getSchemeAndHttpHost() . $url;
+    foreach ($source['urls'] as $file) {
+      $path = \Drupal::service('file_system')->realpath($file);
+      $urls[] = \Drupal::service('file_url_generator')->generateString($path);
     }
     $source['urls'] = $urls;
     $migration->set('source', $source);

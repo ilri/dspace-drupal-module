@@ -29,9 +29,6 @@ class MapCGIARTerms extends ProcessPluginBase {
         if($term instanceof Term) {
           return $term->id();
         }
-        else {
-          throw new MigrateException('Unable to map ' . static::$LABEL .' "'.$value.'"');
-        }
       }
     }
     else {
