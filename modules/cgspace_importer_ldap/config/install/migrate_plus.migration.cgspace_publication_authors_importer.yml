@@ -13,7 +13,7 @@ source:
   plugin: url
   data_fetcher_plugin: file
   urls:
-    - '/sites/default/files/cgspace-proxy.json'
+    - 'public://cgspace-proxy.json'
   data_parser_plugin: json
 
   item_selector: items
