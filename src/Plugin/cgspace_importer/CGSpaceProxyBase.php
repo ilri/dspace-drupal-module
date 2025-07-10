@@ -8,6 +8,7 @@ use Drupal\Core\Queue\RequeueException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 
+
 Class CGSpaceProxyBase {
 
   protected $endpoint;
@@ -24,6 +25,7 @@ Class CGSpaceProxyBase {
       $container->get('http_client'),
     );
   }
+
 
   protected function getData($url) {
 

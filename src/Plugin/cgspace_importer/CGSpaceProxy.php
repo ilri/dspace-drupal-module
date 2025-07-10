@@ -3,10 +3,13 @@
 namespace Drupal\cgspace_importer\Plugin\cgspace_importer;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Url;
 
 Class CGSpaceProxy extends CGSpaceProxyBase {
 
   use StringTranslationTrait;
+
+  public const PAGE_SIZE=100;
 
   public function getCommunities(): array {
     $result = array();
@@ -80,23 +83,37 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   }
 
-  /**
-   * @throws \Exception
-   */
-  public function getCollectionNumberItems($collection): string {
-    $collection = $this->getData("$this->endpoint/server/api/core/collections/$collection");
+  public function getAllItems($collection) {
 
-    return (string) $collection["archivedItemsCount"];
+    \Drupal::logger('cgspace_importer')->notice(
+      t("Listing items for collection: @collection.", [
+        "@collection" => $collection
+      ]
+      )
+    );
+
+    return $this->getItemsByQuery($collection, '');
   }
 
-  public function getItems($collection, $number_items): array {
+  public function getUpdatedItems($collection, $lastModified) {
 
-    print "Listing items for collection $collection\n";
+    \Drupal::logger('cgspace_importer')->notice(
+      t("Getting Updated items for collection: @collection.", [
+          "@collection" => $collection
+        ]
+      )
+    );
+
+    return $this->getItemsByQuery($collection, $lastModified);
+  }
+
+
+  public function getItemsByQuery($collection, $query) {
 
     $result = array();
 
     try {
-      $items = $this->getPagedItems($collection, $number_items);
+      $items = $this->getPagedItemsByQuery($collection, $query);
       $result = array_unique($items);
     }
     catch(\Exception $ex) {
@@ -106,29 +123,49 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
-  /**
-   * @throws \Exception
-   */
-  private function getPagedItems($collection, $number_items, $page=0, $result = []) {
-    $size = 100;
-    $items = $this->getData("$this->endpoint/server/api/discover/search/objects?dsoType=item&scope=$collection&size=$size&page=$page");
+
+  private function getPagedItemsByQuery($collection, $searchQuery='', $page=0, $result=[]) {
+
+    $query = [
+      "query" => [
+        "scope" => $collection,
+        "dsoType" => "item",
+        "size" => self::PAGE_SIZE,
+        "page" => $page
+      ]
+    ];
+    if(!empty($searchQuery)) {
+      $query["query"] += ["query" => $searchQuery];
+    }
+
+    $url = Url::fromUri("$this->endpoint/server/api/discover/search/objects", $query);
+
+    $items = $this->getData($url->toString());
 
     foreach ($items['_embedded']['searchResult']['_embedded']['objects'] as $item) {
       $result[] = $item['_embedded']['indexableObject']['uuid'];
     }
 
-    if(count($result) < $number_items && count($items['_embedded']['searchResult']['_embedded']['objects']) === $size) {
-      return $this->getPagedItems($collection, $number_items, $page+1, $result);
+    if($items['_embedded']['searchResult']['page']['number'] < ($items['_embedded']['searchResult']['page']['totalPages'] - 1)) {
+      return $this->getPagedItemsByQuery($collection, $searchQuery, $page + 1, $result);
     }
 
     return $result;
-
   }
 
-  public function getItem($item): array {
+  public function getItem($item): array
+  {
     // remove XML header
-    $item = $this->getData("$this->endpoint/server/api/core/items/$item?embed=bundles/bitstreams,mappedCollections/parentCommunity");
-    return $this->getItemBitstreams($item);
+    $result = $this->getData("$this->endpoint/server/api/core/items/$item?embed=bundles/bitstreams,mappedCollections/parentCommunity");
+
+    try {
+      $result = $this->getItemBitstreams($result);
+    }
+    catch (\Exception $ex) {
+      print $ex->getMessage();
+    }
+
+    return $result;
   }
 
   /**
