@@ -1,3 +1,9 @@
+# Version 1.0.20
+• Bugfix: wrong drush command class on drush.services.yml
+# Version 1.0.19
+• cgspace-sync command renamed to cgspace_importer:create
+• added cgspace_importer:update command to update the json file by a given date
+• improved and refactored CGSpaceProxy class
 # Version 1.0.18
 • updated path on importers to use file handler
 # Version 1.0.17
