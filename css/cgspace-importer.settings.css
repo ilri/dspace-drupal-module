@@ -1,14 +1,14 @@
-.cgspace-importer-admin-settings .form-item-indent-1.form-item {
+.cgspace-importer-admin-settings-communities .form-item-indent-1.form-item {
   margin-left: calc(var(--input--label-spacing) + 1.5rem) !important;
   position: relative;
 }
 
-.cgspace-importer-admin-settings .form-item-indent-2.form-item {
+.cgspace-importer-admin-settings-communities .form-item-indent-2.form-item {
   margin-left: calc(var(--input--label-spacing) + 3rem) !important;
   position: relative;
 }
 
-.cgspace-importer-admin-settings .form-item-indent-3.form-item {
+.cgspace-importer-admin-settings-communities .form-item-indent-3.form-item {
   margin-left: calc(var(--input--label-spacing) + 4.5rem) !important;
   position: relative;
 }

@@ -9,12 +9,8 @@ dependencies:
   - file
   - image
   - link
-  - migrate
-  - migrate_file
-  - migrate_plus
-  - migrate_tools
   - node
   - taxonomy
   - serialization
 package: 'Content'
-configure: cgspace_importer.settings
+configure: cgspace_importer.settings_general

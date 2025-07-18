@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cgspace_importer\Plugin\cgspace_importer;
+namespace Drupal\cgspace_importer;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -15,7 +15,7 @@ Class CGSpaceProxyBase {
   protected ClientInterface $httpClient;
 
   public function __construct($endpoint, ConfigFactoryInterface $configFactory, ClientInterface $httpClient) {
-    $this->endpoint = empty($endpoint)? $configFactory->get('cgspace_importer.settings')->get('endpoint') : $endpoint;
+    $this->endpoint = empty($endpoint)? $configFactory->get('cgspace_importer.settings.general')->get('endpoint') : $endpoint;
     $this->httpClient = $httpClient;
   }
 
@@ -29,7 +29,7 @@ Class CGSpaceProxyBase {
 
   protected function getData($url) {
 
-    $importer = \Drupal::config('cgspace_importer.settings')->get('importer');
+    $importer = \Drupal::config('cgspace_importer.settings.general')->get('importer');
     $result = '';
 
     try {
@@ -57,7 +57,7 @@ Class CGSpaceProxyBase {
 
 
   protected function getDataBitstream($url) {
-    $importer = \Drupal::config('cgspace_importer.settings')->get('importer');
+    $importer = \Drupal::config('cgspace_importer.settings.general')->get('importer');
     $result = '';
 
     try {

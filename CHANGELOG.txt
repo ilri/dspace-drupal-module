@@ -1,3 +1,8 @@
+# Version 1.1.0
+• Splitted Settings form to have communities and collections on different tabs to improve performances
+• Updated drush commands to have cgspace_importer:create, cgspace_importer:update and cgspace_importer:delete
+• Switched from JSon database for the migration framework to Node API, now all cgspace_publication nodes are updated/created/deleted using custom functions
+• Updated CGSpaceProxy to use Drupal:logger
 # Version 1.0.20
 • Bugfix: wrong drush command class on drush.services.yml
 # Version 1.0.19

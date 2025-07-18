@@ -6,7 +6,7 @@
 
 namespace Drupal\cgspace_importer\Controller;
 
-use Drupal\cgspace_importer\Plugin\cgspace_importer\CGSpaceProxy;
+use Drupal\cgspace_importer\CGSpaceProxy;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
@@ -21,13 +21,13 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class SyncContentController extends ControllerBase implements ContainerInjectionInterface{
 
-
+/*
   private $endpoint;
   private $collections;
   private $proxy;
 
   public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $httpClient) {
-    $this->endpoint = $configFactory->get('cgspace_importer.settings')->get('endpoint');
+    $this->endpoint = $configFactory->get('cgspace_importer.settings.general')->get('endpoint');
     $this->collections = $configFactory->get('cgspace_importer.settings.collections')->get();
     $this->proxy = new CGSpaceProxy($this->endpoint, $configFactory, $httpClient);
   }
@@ -40,9 +40,7 @@ class SyncContentController extends ControllerBase implements ContainerInjection
     );
   }
 
-  /**
-   * Process all queue items with batch
-   */
+
   public function sync() {
 
     // Create batch which collects all the specified queue items and process them one after another
@@ -85,7 +83,6 @@ class SyncContentController extends ControllerBase implements ContainerInjection
 
   }
 
-
-
+*/
 
 }

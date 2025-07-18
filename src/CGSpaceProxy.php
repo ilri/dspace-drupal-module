@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\cgspace_importer\Plugin\cgspace_importer;
+namespace Drupal\cgspace_importer;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
@@ -9,20 +9,65 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   use StringTranslationTrait;
 
-  public const PAGE_SIZE=100;
+
+
+  public function countCollectionItems($collection_uuid, $searchQuery = ''): int {
+
+    $num_items = 0;
+
+    try {
+      $query = [
+        "query" => [
+          "scope" => $collection_uuid,
+          "dsoType" => "item",
+          "size" => \Drupal::config('cgspace_importer.settings.general')->get('page_size'),
+          "page" => 0
+        ]
+      ];
+
+      if(!empty($searchQuery)) {
+        $query["query"] += ["query" => $searchQuery];
+      }
+
+      $url = Url::fromUri("$this->endpoint/server/api/discover/search/objects", $query);
+
+      $result = $this->getData($url->toString());
+
+      if(isset($result['_embedded']['searchResult']['page']['totalElements'])) {
+        $num_items = $result['_embedded']['searchResult']['page']['totalElements'];
+      }
+    }
+    catch(\Exception $ex) {
+      \Drupal::logger('cgspace_importer')->error(
+        t("Error getting number of items for collection @collection: @message", [
+            "@collection" => $collection_uuid,
+            "@message" => $ex->getMessage(),
+          ]
+        )
+      );
+    }
+
+    return $num_items;
+  }
+
 
   public function getCommunities(): array {
     $result = array();
 
     try {
-      $communities = $this->getData($this->endpoint . '/server/api/core/communities/search/top?size=1000');
+      $communities = $this->getData($this->endpoint . '/server/api/core/communities/search/top?size=100');
 
       foreach ($communities["_embedded"]["communities"] as $community) {
         $result[(string)$community["uuid"]] = (string)$community["name"] . ' <strong>(' . (string)$community["archivedItemsCount"] . ')</strong>';
       }
     }
     catch(\Exception $ex) {
-      print $ex->getMessage();
+      \Drupal::logger('cgspace_importer')->error(
+        t("Error getting communities: @message", [
+            "@message" => $ex->getMessage(),
+          ]
+        )
+      );
     }
 
     return $result;
@@ -32,7 +77,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     $result = array();
 
     try {
-      $communities = $this->getData("$this->endpoint/server/api/core/communities/$community/subcommunities?size=1000");
+      $communities = $this->getData("$this->endpoint/server/api/core/communities/$community/subcommunities?size=100");
 
       foreach ($communities["_embedded"]["subcommunities"] as $subCommunity) {
         if(!empty($subCommunity))
@@ -40,7 +85,13 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
       }
     }
     catch(\Exception $ex) {
-      print $ex->getMessage();
+      \Drupal::logger('cgspace_importer')->error(
+        t("Error getting sub-communities for community @community: @message", [
+            "@community" => $community,
+            "@message" => $ex->getMessage(),
+          ]
+        )
+      );
     }
 
     return $result;
@@ -59,7 +110,13 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
       }
     }
     catch(\Exception $ex) {
-      print $ex->getMessage();
+      \Drupal::logger('cgspace_importer')->error(
+        t("Error getting collections for community @community: @message", [
+            "@community" => $community,
+            "@message" => $ex->getMessage(),
+          ]
+        )
+      );
     }
 
     return $result;
@@ -76,61 +133,26 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
       $result = (string) $community["name"];
     }
     catch(\Exception $ex) {
-      print $ex->getMessage();
+      \Drupal::logger('cgspace_importer')->error(
+        t("Error getting name for community @community: @message", [
+            "@community" => $community,
+            "@message" => $ex->getMessage(),
+          ]
+        )
+      );
     }
 
     return $result;
 
   }
 
-  public function getAllItems($collection) {
-
-    \Drupal::logger('cgspace_importer')->notice(
-      t("Listing items for collection: @collection.", [
-        "@collection" => $collection
-      ]
-      )
-    );
-
-    return $this->getItemsByQuery($collection, '');
-  }
-
-  public function getUpdatedItems($collection, $lastModified) {
-
-    \Drupal::logger('cgspace_importer')->notice(
-      t("Getting Updated items for collection: @collection.", [
-          "@collection" => $collection
-        ]
-      )
-    );
-
-    return $this->getItemsByQuery($collection, $lastModified);
-  }
-
-
-  public function getItemsByQuery($collection, $query) {
-
-    $result = array();
-
-    try {
-      $items = $this->getPagedItemsByQuery($collection, $query);
-      $result = array_unique($items);
-    }
-    catch(\Exception $ex) {
-      print $ex->getMessage();
-    }
-
-    return $result;
-  }
-
-
-  private function getPagedItemsByQuery($collection, $searchQuery='', $page=0, $result=[]) {
+  public function getPagedItemsByQuery($collection, $searchQuery='', $page=0, $result=[]) {
 
     $query = [
       "query" => [
         "scope" => $collection,
         "dsoType" => "item",
-        "size" => self::PAGE_SIZE,
+        "size" => \Drupal::config('cgspace_importer.settings.general')->get('page_size'),
         "page" => $page
       ]
     ];
@@ -146,10 +168,6 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
       $result[] = $item['_embedded']['indexableObject']['uuid'];
     }
 
-    if($items['_embedded']['searchResult']['page']['number'] < ($items['_embedded']['searchResult']['page']['totalPages'] - 1)) {
-      return $this->getPagedItemsByQuery($collection, $searchQuery, $page + 1, $result);
-    }
-
     return $result;
   }
 
@@ -162,7 +180,13 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
       $result = $this->getItemBitstreams($result);
     }
     catch (\Exception $ex) {
-      print $ex->getMessage();
+      \Drupal::logger('cgspace_importer')->error(
+        t("Error getting item @item: @message", [
+            "@message" => $ex->getMessage(),
+            "@collection" => $item
+          ]
+        )
+      );
     }
 
     return $result;

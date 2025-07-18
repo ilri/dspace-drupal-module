@@ -1,4 +1,4 @@
-cgspace-settings-form:
+cgspace_settings_form:
   css:
     theme:
       css/cgspace-importer.settings.css: {}

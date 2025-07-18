@@ -3,6 +3,7 @@ status: true
 dependencies:
   config:
     - field.field.node.cgspace_publication.body
+    - field.field.node.cgspace_publication.field_cg_uuid
     - field.field.node.cgspace_publication.field_cg_access_rights
     - field.field.node.cgspace_publication.field_cg_authors
     - field.field.node.cgspace_publication.field_cg_authors_ref
@@ -51,6 +52,14 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 1
+    region: content
+  field_cg_uuid:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: { }
+    weight: 2
     region: content
   field_cg_authors:
     type: string
@@ -231,6 +240,14 @@ content:
     weight: 15
     region: content
   field_cg_impact_areas_ref:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: { }
+    weight: 15
+    region: content
+  field_cg_tags_ref:
     type: entity_reference_label
     label: above
     settings:

@@ -1,0 +1,20 @@
+cgspace_importer.settings_general:
+  route_name: cgspace_importer.settings_general
+  base_route: cgspace_importer.settings_general
+  title: 'General Settings'
+  weight: 0
+cgspace_importer.settings_communities:
+  route_name: cgspace_importer.settings_communities
+  base_route: cgspace_importer.settings_general
+  title: 'Communities'
+  weight: 1
+cgspace_importer.settings_collections:
+  route_name: cgspace_importer.settings_collections
+  base_route: cgspace_importer.settings_general
+  title: 'Collections'
+  weight: 2
+cgspace_importer.processors:
+  route_name: cgspace_importer.processors
+  base_route: cgspace_importer.settings_general
+  title: 'Processors'
+  weight: 3

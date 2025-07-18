@@ -3,6 +3,7 @@ status: true
 dependencies:
   config:
     - field.field.node.cgspace_publication.body
+    - field.field.node.cgspace_publication.field_cg_uuid
     - field.field.node.cgspace_publication.field_cg_access_rights
     - field.field.node.cgspace_publication.field_cg_authors
     - field.field.node.cgspace_publication.field_cg_authors_ref
@@ -60,6 +61,7 @@ hidden:
   body: true
   created: true
   field_cg_access_rights: true
+  field_cg_uuid: true
   field_cg_authors: true
   field_cg_authors_ref: true
   field_cg_citation: true

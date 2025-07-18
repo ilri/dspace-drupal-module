@@ -1,33 +1,35 @@
 cgspace_importer:
-  path: '/admin/config/cgspace'
+  path: '/admin/config/cgspace/settings'
   defaults:
     _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
     _title: 'CGSpace'
   requirements:
     _permission: 'administer webform donation settings'
-cgspace_importer.settings:
-  path: '/admin/config/cgspace/settings'
+cgspace_importer.settings_general:
+  path: '/admin/config/cgspace/settings/general'
   defaults:
-    _form: '\Drupal\cgspace_importer\Form\CGSpaceSettingsForm'
-    _title: 'CGSpace Settings'
+    _form: '\Drupal\cgspace_importer\Form\CGSpaceSettingsGeneralForm'
+    _title: 'CGSpace General Settings'
   requirements:
     _permission: 'administer cgspace'
-cgspace_importer.sync_cgspace:
-  path: '/admin/content/cgspace-sync'
+cgspace_importer.settings_communities:
+  path: '/admin/config/cgspace/settings/communities'
   defaults:
-    _controller: '\Drupal\cgspace_importer\Controller\SyncContentController::sync'
+    _form: '\Drupal\cgspace_importer\Form\CGSpaceSettingsCommunitiesForm'
+    _title: 'CGSpace Communities Settings'
   requirements:
-    _permission: 'sync content from CGSpace'
-cgspace_importer.sync_cgspace_publications:
-  path: '/admin/content/cgspace-sync-publications'
+    _permission: 'administer cgspace'
+cgspace_importer.settings_collections:
+  path: '/admin/config/cgspace/settings/collections'
   defaults:
-    _controller: '\Drupal\cgspace_importer\Controller\SyncContentController::syncPublications'
+    _form: '\Drupal\cgspace_importer\Form\CGSpaceSettingsCollectionsForm'
+    _title: 'CGSpace Collections Settings'
   requirements:
-    _permission: 'sync content from CGSpace'
+    _permission: 'administer cgspace'
 cgspace_importer.processors:
-  path: '/admin/config/cgspace/processors'
+  path: '/admin/config/cgspace/settings/processors'
   defaults:
-    _form: '\Drupal\cgspace_importer\Form\ProcessorsSettingsForm'
+    _form: '\Drupal\cgspace_importer\Form\CGSpaceSettingsProcessorsForm'
     _title: 'CGSpace Processors Settings'
   requirements:
     _permission: 'administer cgspace'

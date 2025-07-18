@@ -1,20 +1,6 @@
 cgspace_importer:
   title: 'CGSpace'
-  description: 'Manage CGSpace settings'
-  parent: system.admin_config
-  route_name: cgspace_importer
-cgspace_importer.settings:
-  title: Importer Settings
-  description: 'Settings for CGSpace Importer'
-  parent: cgspace_importer
-  route_name: cgspace_importer.settings
-cgspace_importer.processors:
-  title: Processors Settings
-  description: 'Settings for CGSpace Processors'
-  parent: cgspace_importer
-  route_name: cgspace_importer.processors
-cgspace_importer.menu:
-  title: 'Sync CGSpace'
-  route_name: cgspace_importer.sync_cgspace
-  menu: admin
-  parent: system.admin_content
+  description: 'CGSpace settings'
+  parent: system.admin_config_services
+  route_name: cgspace_importer.settings_general
+
