@@ -22,44 +22,39 @@ class CGSpaceSettingsCollectionsForm extends CGSpaceSettingsBaseForm {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config(static::SETTINGS);
-    $config_communities = $this->config(static::COMMUNITIES);
     $config_collections = $this->config(static::COLLECTIONS);
 
     //if we have communities set get collections
-    if(!empty($communities = $config_communities->get()) && !empty($config->get('endpoint'))) {
-
+    if(!empty($communities = $config_collections->get()) && !empty($config->get('endpoint'))) {
 
       $form['collections'] = [
         '#type' => 'fieldset',
-        '#title' => $this->t('Collections'),
-        '#description' => $this->t('Select the Collections you want to include in the proxy generated XML.'),
-        '#prefix' => '<div id="edit-collections-output">',
-        '#suffix' => '</div>',
+        '#title' => $this->t("Select Collections from your Communities"),
         '#tree' => true,
       ];
 
-      foreach ($communities as $community => $value) {
+      $this->addCheckAll($form['collections']);
 
-        if ($value) {
-
-          $form['collections'][$community] = [
-            '#type' => 'fieldset',
-            '#title' => $this->proxy->getCommunityName($community),
-          ];
-
-          $collections = $this->proxy->getCollections($community);
-          foreach ($collections as $collection_uuid => $collection_name) {
-
-            $form['collections'][$community][$collection_uuid] = array(
-              '#type' => 'checkbox',
-              '#title' => $collection_name,
-              '#default_value' => $config_collections->get($collection_uuid),
-            );
-          }
+      foreach ($communities as $community => $collections) {
+        $options = [];
+        $collections = $this->proxy->getCollections($community);
+        foreach ($collections as $collection_uuid => $collection_name) {
+          $options[$collection_uuid] = $collection_name;
         }
 
+        if(count($options) > 0) {
+          $form['collections'][$community] = [
+            '#type' => 'checkboxes',
+            '#title' => $this->proxy->getCommunityName($community),
+            '#default_value' => $config_collections->get($community),
+            '#options' => $options,
+            '#check_all' => true,
+          ];
+        }
       }
     }
+
+    //dpm($config_collections->get());
 
     return parent::buildForm($form, $form_state);
   }
@@ -73,25 +68,30 @@ class CGSpaceSettingsCollectionsForm extends CGSpaceSettingsBaseForm {
     $collections_settings = $this->configFactory->getEditable(static::COLLECTIONS);
 
     $collections_added = [];
-
-    //set collections
-    $old_collections = $collections_settings->get();
     foreach($form_state->getValue('collections') as $community => $collections) {
-      foreach ($collections as $collection_uuid => $collection_value) {
-        if( ($collection_value === 1) && ($old_collections[$collection_uuid] === 0) ){
-          //added
+      $new_collections = [];
+      $old_collections = $collections_settings->get($community);
+      foreach($collections as $collection => $checked) {
+        if($checked) {
+          $new_collections[] = $collection;
+        }
+
+
+        if(is_null($old_collections) || !in_array($collection, $old_collections)) {
           \Drupal::logger('cgspace_importer')->notice(
             t('Collection @collection added', [
-              '@collection' => $collection_uuid
+              '@collection' => $collection
             ])
           );
 
-          $collections_added[] = $collection_uuid;
+          $collections_added[] = $collection;
         }
 
-        $collections_settings->set($collection_uuid, $collection_value);
       }
+
+      $collections_settings->set($community, $new_collections);
     }
+
 
     $collections_settings->save();
 

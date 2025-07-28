@@ -1,3 +1,7 @@
+# Version 1.1.1
+• New Feature: removed hardcoded fields mapping and added a configuration file. Created a new NodeImporterProcessor Plugin to allow post processing transformers
+• Added check all/uncheck all functionality on backend configuration forms
+• Added a caching mechanism for communities names to improve performances on collections page removing an api call
 # Version 1.1.0
 • Splitted Settings form to have communities and collections on different tabs to improve performances
 • Updated drush commands to have cgspace_importer:create, cgspace_importer:update and cgspace_importer:delete

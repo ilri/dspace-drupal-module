@@ -1,0 +1,110 @@
+content_type: cgspace_publication
+mappings:
+  -
+    source: uuid
+    target: field_cg_uuid
+  -
+    source: name
+    target: title
+    process:
+      plugin: truncate
+      length: 255
+  -
+    source: dc.contributor.author
+    target: field_cg_authors
+  -
+    source: dcterms.abstract
+    target: body
+    process:
+      plugin: markup
+      format: filtered_html
+  -
+    source: dcterms.issued
+    target: field_cg_published_on
+  -
+    source: dcterms.issued
+    target: field_cg_published_on_date
+    process:
+      plugin: authored_on
+  -
+    source: dcterms.issued
+    target: field_cg_publication_year_ref
+    process:
+      plugin: publication_year
+      vocabulary: cgspace_publication_year
+      create: true
+  -
+    source: dcterms.publisher
+    target: field_cg_publisher
+  -
+    source: dcterms.bibliographicCitation
+    target: field_cg_citation
+  -
+    source: dcterms.isPartOf
+    target: field_cg_series
+  -
+    source: dcterms.accessRights
+    target: field_cg_access_rights
+  -
+    source: dc.identifier.uri
+    target: field_cg_permanent_link
+    process:
+      plugin: link
+  -
+    source: handle
+    target: field_cg_handle
+  -
+    source: cg.identifier.doi
+    target: field_cg_doi
+    process:
+      plugin: doi
+  -
+    source: cg.identifier.doi
+    target: field_cg_link_journal
+    process:
+      plugin: link
+  -
+    source: cg.identifier.url
+    target: field_cg_link_document
+    process:
+      plugin: link
+  -
+    source: attachment.uri
+    target: field_cg_download_link
+    process:
+      plugin: link
+      title: attachment.name
+  -
+    source: cg.coverage.country
+    target: field_cg_countries
+    process:
+      plugin: country
+  -
+    source: picture
+    target: field_cg_image
+    process:
+      plugin: image
+  -
+    source: cg.contributor.initiative
+    target: field_cg_initiatives_ref
+    process:
+      plugin: taxonomy_term
+      vocabulary: cgspace_research_initiatives
+      configuration: cgspace_importer.settings.processors.research_initiatives
+      create: true
+  -
+    source: cg.subject.ilri
+    target: field_cg_impact_areas_ref
+    process:
+      plugin: taxonomy_term
+      vocabulary: cgspace_impact_areas
+      configuration: cgspace_importer.settings.processors.impact_areas
+      create: true
+  -
+    source: cg.subject.ilri
+    target: field_cg_tags_ref
+    process:
+      plugin: taxonomy_term
+      vocabulary: cgspace_tags
+      configuration: cgspace_importer.settings.processors.tags
+      create: true

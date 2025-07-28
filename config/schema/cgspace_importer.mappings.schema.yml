@@ -1,0 +1,21 @@
+cgspace_importer.mappings:
+  type: config_object
+  label: 'CGSpace Importer Mapping settings'
+  mapping:
+    content_type:
+      type: string
+      label: 'Content Type Machine name'
+    mapping:
+      mappings:
+        mapping:
+          source:
+            type: string
+            label: 'CGSpace source path'
+          target:
+            type: string
+            label: 'Drupal target field_name'
+          process:
+            mapping:
+              plugin:
+                type: string
+                label: 'Process Plugin'

@@ -1,0 +1,4 @@
+services:
+  plugin.manager.cgspace_importer.processors:
+    class: Drupal\cgspace_importer\NodeImporterProcessorManager
+    arguments: [ '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory', '@entity_type.manager' ]

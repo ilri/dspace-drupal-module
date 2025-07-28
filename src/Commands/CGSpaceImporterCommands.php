@@ -6,7 +6,6 @@ use Drupal\cgspace_importer\BatchNodeService;
 use Drupal\cgspace_importer\CGSpaceProxy;
 use Drupal\Core\Batch\BatchBuilder;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Database\DatabaseException;
 use Drush\Commands\DrushCommands;
 use GuzzleHttp\ClientInterface;
 /**
@@ -53,13 +52,13 @@ class CGSpaceImporterCommands extends DrushCommands {
 
       //load all uuids from backend configuration
       $num_items = 0;
-      foreach ($this->collections as $collection_uuid => $status) {
-        if($status) {
-          $collection_num_items = $this->proxy->countCollectionItems($collection_uuid, '');
+      foreach ($this->collections as $community => $collections) {
+        foreach($collections as $collection) {
+          $collection_num_items = $this->proxy->countCollectionItems($collection, '');
           $pages = ceil($collection_num_items / \Drupal::config('cgspace_importer.settings.general')->get('page_size'));
           for($page=0; $page<$pages; $page++) {
             //get the number of pages
-            $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection_uuid, '', $page]);
+            $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, '', $page]);
           }
           $num_items += $collection_num_items;
         }
@@ -77,7 +76,7 @@ class CGSpaceImporterCommands extends DrushCommands {
       drush_backend_batch_process();
     }  catch(\Exception $exception) {
       $this->logger()->error(t("Error creating the Batch process: @message", ["@message" => $exception->getMessage()]));
-      }
+    }
   }
 
   /**
@@ -125,34 +124,34 @@ class CGSpaceImporterCommands extends DrushCommands {
         ->setErrorMessage('An error occurred during processing.');
 
       $num_items = 0;
-      foreach ($this->collections as $collection_uuid => $status) {
-        if($status) {
+
+      foreach ($this->collections as $community => $collections) {
+        foreach ($collections as $collection) {
           //if collection configuration has changed and we have collections added
           //run the BatchListProcess without query (fetch all the collection) otherwise use the lastModified query (fetch the collection since the last_run date)
           $collections_added = \Drupal::state()->get('cgspace_importer.collections_added');
-          if(in_array($collection_uuid, $collections_added)) {
-            $collection_num_items = $this->proxy->countCollectionItems($collection_uuid, '');
+          if (in_array($collection, $collections_added)) {
+            $collection_num_items = $this->proxy->countCollectionItems($collection, '');
             $pages = ceil($collection_num_items / \Drupal::config('cgspace_importer.settings.general')->get('page_size'));
             for ($page = 0; $page < $pages; $page++) {
               //get the number of pages
-              $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection_uuid, '', $page]);
+              $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, '', $page]);
             }
 
             //remove the current collection from "collections_added" state variable
-            $index = array_search($collection_uuid, $collections_added);
+            $index = array_search($collection, $collections_added);
             if ($index !== false) {
               unset($collections_added[$index]);
               $collections_added = array_values($collections_added);
             }
 
             \Drupal::state()->set('cgspace_importer.collections_added', $collections_added);
-          }
-          else {
-            $collection_num_items = $this->proxy->countCollectionItems($collection_uuid, $query);
+          } else {
+            $collection_num_items = $this->proxy->countCollectionItems($collection, $query);
             $pages = ceil($collection_num_items / \Drupal::config('cgspace_importer.settings.general')->get('page_size'));
             for ($page = 0; $page < $pages; $page++) {
               //get the number of pages
-              $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection_uuid, $query, $page]);
+              $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, $query, $page]);
             }
           }
           $num_items += $collection_num_items;
@@ -205,13 +204,13 @@ class CGSpaceImporterCommands extends DrushCommands {
 
       //load all uuids from backend configuration
 
-      foreach ($this->collections as $collection_uuid => $status) {
-        if($status) {
-          $collection_num_items = $this->proxy->countCollectionItems($collection_uuid, '');
+      foreach ($this->collections as $community => $collections) {
+        foreach($collections as $collection) {
+          $collection_num_items = $this->proxy->countCollectionItems($collection, '');
           $pages = ceil($collection_num_items / \Drupal::config('cgspace_importer.settings.general')->get('page_size'));
           for($page=0; $page<$pages; $page++) {
             //get the number of pages
-            $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection_uuid, '', $page]);
+            $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, '', $page]);
           }
         }
       }
@@ -238,7 +237,7 @@ class CGSpaceImporterCommands extends DrushCommands {
       drush_backend_batch_process();
     }
     catch (\Exception $ex) {
-      $this->logger()->error(t("Error creating the Batch process: @message", ["@message" => $exception->getMessage()]));
+      $this->logger()->error(t("Error creating the Batch process: @message", ["@message" => $ex->getMessage()]));
     }
   }
 

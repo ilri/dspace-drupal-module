@@ -55,4 +55,41 @@ abstract class CGSpaceSettingsBaseForm extends ConfigFormBase {
     ];
   }
 
+  protected function addCheckAll(array &$form) {
+
+    $form['all_wrapper'] = [
+      '#type' => 'container',
+      '#attributes' => ['class' => ['checkall-widget']],
+      '#weight' => 0,
+    ];
+    $form['all_wrapper']['check_all'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'button',
+      '#value' => $this->t('Check all'),
+      '#default_value' => FALSE,
+      '#attributes' => [
+        'class' => [
+          'checkall-widget-btn',
+          'button--small',
+        ],
+        'data-check-all' => TRUE,
+      ],
+    ];
+    $form['all_wrapper']['uncheck_all'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'button',
+      '#value' => $this->t('Uncheck all'),
+      '#default_value' => FALSE,
+      '#attributes' => [
+        'class' => [
+          'checkall-widget-btn',
+          'button--small',
+        ],
+        'data-check-all' => FALSE,
+      ],
+    ];
+
+    $form['#attached']['library'][] = 'cgspace_importer/checkall_widget';
+  }
+
 }

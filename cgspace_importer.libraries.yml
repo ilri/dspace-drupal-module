@@ -2,3 +2,6 @@ cgspace_settings_form:
   css:
     theme:
       css/cgspace-importer.settings.css: {}
+checkall_widget:
+  js:
+    js/checkall_widget.js: {}

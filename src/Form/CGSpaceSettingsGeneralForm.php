@@ -49,6 +49,13 @@ class CGSpaceSettingsGeneralForm extends CGSpaceSettingsBaseForm {
       '#required' => true,
     ];
 
+    $form['debug'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('DEBUG mode.'),
+      '#description' => $this->t('Disable on Production environment'),
+      '#default_value' => $this->config(static::SETTINGS)->get('debug') ?? 0,
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -76,6 +83,7 @@ class CGSpaceSettingsGeneralForm extends CGSpaceSettingsBaseForm {
       ->set('endpoint', $form_state->getValue('endpoint'))
       ->set('importer', $form_state->getValue('importer'))
       ->set('page_size', $form_state->getValue('page_size'))
+      ->set('debug', $form_state->getValue('debug'))
       ->save();
 
     parent::submitForm($form, $form_state);

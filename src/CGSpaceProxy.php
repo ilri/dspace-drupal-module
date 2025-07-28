@@ -20,7 +20,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
         "query" => [
           "scope" => $collection_uuid,
           "dsoType" => "item",
-          "size" => \Drupal::config('cgspace_importer.settings.general')->get('page_size'),
+          "size" => 1,
           "page" => 0
         ]
       ];
@@ -124,22 +124,26 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   public function getCommunityName($community): string {
 
-    $result = '';
 
-    try {
-      $community = $this->getData($this->endpoint . '/server/api/core/communities/' . $community);
+    $result = \Drupal::config("cgspace_importer.settings.communities")->get($community);
+
+    if(is_null($result)) {
+
+      try {
+        $community = $this->getData($this->endpoint . '/server/api/core/communities/' . $community);
 
 
-      $result = (string) $community["name"];
-    }
-    catch(\Exception $ex) {
-      \Drupal::logger('cgspace_importer')->error(
-        t("Error getting name for community @community: @message", [
-            "@community" => $community,
-            "@message" => $ex->getMessage(),
-          ]
-        )
-      );
+        $result = (string)$community["name"];
+      } catch (\Exception $ex) {
+        \Drupal::logger('cgspace_importer')->error(
+          t("Error getting name for community @community: @message", [
+              "@community" => $community,
+              "@message" => $ex->getMessage(),
+            ]
+          )
+        );
+      }
+
     }
 
     return $result;
@@ -165,7 +169,9 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     $items = $this->getData($url->toString());
 
     foreach ($items['_embedded']['searchResult']['_embedded']['objects'] as $item) {
-      $result[] = $item['_embedded']['indexableObject']['uuid'];
+      if(isset($item['_embedded']['indexableObject']['uuid'])) {
+        $result[] = $item['_embedded']['indexableObject']['uuid'];
+      }
     }
 
     return $result;

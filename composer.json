@@ -2,7 +2,7 @@
     "name": "ilri/cgspace_importer",
     "description": "Imports publications from CGSpace into a Drupal content type called cgspace_publication",
     "type": "drupal-custom-module",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "homepage": "https://github.com/ilri/dspace-drupal-module",
     "authors": [
         {

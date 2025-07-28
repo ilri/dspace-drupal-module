@@ -7,7 +7,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Queue\RequeueException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
-
+use GuzzleHttp\TransferStats;
 
 Class CGSpaceProxyBase {
 
@@ -38,6 +38,17 @@ Class CGSpaceProxyBase {
           'User-Agent' => $importer." Publications Importer BOT"
         ],
         'timeout' => 60000,
+        'on_stats' => function (TransferStats $stats) {
+          if(\Drupal::config('cgspace_importer.settings.general')->get('debug')) {
+            \Drupal::logger('cgspace_importer')->notice(
+              t('[@time] CGSpace request to @uri.',
+                [
+                  '@uri' => $stats->getEffectiveUri(),
+                  '@time' => $stats->getTransferTime()
+                ])
+            );
+          }
+        }
       ]);
       $status = $request->getStatusCode();
       $resultJson = $request->getBody()->getContents();
