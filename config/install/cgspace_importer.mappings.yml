@@ -1,4 +1,5 @@
 content_type: cgspace_publication
+uuid_field: field_cg_uuid
 mappings:
   -
     source: uuid
@@ -42,6 +43,9 @@ mappings:
   -
     source: dcterms.isPartOf
     target: field_cg_series
+    process:
+      plugin: truncate
+      length: 255
   -
     source: dcterms.accessRights
     target: field_cg_access_rights

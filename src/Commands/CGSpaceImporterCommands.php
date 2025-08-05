@@ -6,6 +6,7 @@ use Drupal\cgspace_importer\BatchNodeService;
 use Drupal\cgspace_importer\CGSpaceProxy;
 use Drupal\Core\Batch\BatchBuilder;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Database\DatabaseException;
 use Drush\Commands\DrushCommands;
 use GuzzleHttp\ClientInterface;
 /**
@@ -13,20 +14,20 @@ use GuzzleHttp\ClientInterface;
  */
 class CGSpaceImporterCommands extends DrushCommands {
 
-  protected $endpoint;
   protected $collections;
   protected $proxy;
+  protected $configuration;
 
 
   public function __construct(ConfigFactoryInterface $configFactory, ClientInterface $httpClient) {
     parent::__construct();
-    $this->endpoint = $configFactory->get('cgspace_importer.settings.general')->get('endpoint');
+    $this->configuration = $configFactory->get('cgspace_importer.settings.general')->get();
     $this->collections = $configFactory->get('cgspace_importer.settings.collections')->get();
-    $this->proxy = new CGSpaceProxy($this->endpoint, $configFactory, $httpClient);
+    $this->proxy = new CGSpaceProxy($this->configuration['endpoint'], $configFactory, $httpClient);
   }
 
   /**
-   * Create nodes from CGSpace items selected on configuration page
+   * Create nodes from CGSpace items on sitemap.xml
    *
    *   Argument provided to the drush command.
    *
@@ -37,7 +38,7 @@ class CGSpaceImporterCommands extends DrushCommands {
    *
    * @default $options []
    */
-  public function create() {
+  public function create(array $options = ['all' => false]) {
 
     //TODO: check there is at least one collection selected in configuration
     try {
@@ -50,24 +51,41 @@ class CGSpaceImporterCommands extends DrushCommands {
         ->setProgressMessage('Processing...')
         ->setErrorMessage('An error occurred during processing.');
 
-      //load all uuids from backend configuration
-      $num_items = 0;
-      foreach ($this->collections as $community => $collections) {
-        foreach($collections as $collection) {
-          $collection_num_items = $this->proxy->countCollectionItems($collection, '');
-          $pages = ceil($collection_num_items / \Drupal::config('cgspace_importer.settings.general')->get('page_size'));
-          for($page=0; $page<$pages; $page++) {
-            //get the number of pages
-            $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, '', $page]);
+      if($options['all'] !== false) {
+        //load items from sitemap
+        $items = $this->proxy->getItemsFromSitemap();
+
+        // Create batch which collects all the specified queue items and process them one after another
+        $chunk_size = $this->configuration['node_chunk_size'];
+        $current = 0;
+        foreach (array_chunk($items, $chunk_size) as $chunk) {
+          // Create batch operations
+          $batch->addOperation([BatchNodeService::class, 'batchCreateFromSitemapProcess'], [$chunk, $current, ceil(count($items) / $chunk_size)]);
+          $current++;
+        }
+      }
+      else {
+        //add List operations and count number of items to process
+        $num_items = 0;
+        foreach ($this->collections as $community => $collections) {
+          $collection_num_items = 0;
+          foreach ($collections as $collection) {
+            $collection_num_items = $this->proxy->countCollectionItems($collection, '');
+            $pages = ceil($collection_num_items / $this->configuration['page_size']);
+            for ($page = 0; $page < $pages; $page++) {
+              //get the number of pages
+              $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, '', $page]);
+            }
           }
           $num_items += $collection_num_items;
         }
-      }
-      // Create batch which collects all the specified queue items and process them one after another
-      for($i=0; $i<$num_items; $i++) {
-        // Create batch operations
-        $batch->addOperation([BatchNodeService::class, 'batchLoadProcess'], [$i, $num_items]);
-        $batch->addOperation([BatchNodeService::class, 'batchUpdateProcess'], [$i, $num_items]);
+
+        for($i=0; $i<$num_items; $i++) {
+          // Create batch operations
+          $batch->addOperation([BatchNodeService::class, 'batchLoadProcess'], [$i, $num_items]);
+          $batch->addOperation([BatchNodeService::class, 'batchUpdateProcess'], [$i, $num_items]);
+        }
+
       }
 
       // Adds the batch sets
@@ -93,7 +111,7 @@ class CGSpaceImporterCommands extends DrushCommands {
    *
    * @default $options []
    */
-  public function update(string $last_modified = '', array $options = []) {
+  public function update(string $last_modified = '', array $options = ['all' => false]) {
 
     try {
       //TODO: check processors have been configured
@@ -125,36 +143,49 @@ class CGSpaceImporterCommands extends DrushCommands {
 
       $num_items = 0;
 
-      foreach ($this->collections as $community => $collections) {
-        foreach ($collections as $collection) {
-          //if collection configuration has changed and we have collections added
-          //run the BatchListProcess without query (fetch all the collection) otherwise use the lastModified query (fetch the collection since the last_run date)
-          $collections_added = \Drupal::state()->get('cgspace_importer.collections_added');
-          if (in_array($collection, $collections_added)) {
-            $collection_num_items = $this->proxy->countCollectionItems($collection, '');
-            $pages = ceil($collection_num_items / \Drupal::config('cgspace_importer.settings.general')->get('page_size'));
-            for ($page = 0; $page < $pages; $page++) {
-              //get the number of pages
-              $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, '', $page]);
-            }
+      if($options['all'] !== false) {
+        $num_items = $this->proxy->countCollectionItems('', $query);
+        $pages = ceil($num_items / $this->configuration['page_size']);
+        for ($page = 0; $page < $pages; $page++) {
+          //get the number of pages
+          $batch->addOperation([BatchNodeService::class, 'batchListProcess'], ['', $query, $page]);
+        }
+      }
 
-            //remove the current collection from "collections_added" state variable
-            $index = array_search($collection, $collections_added);
-            if ($index !== false) {
-              unset($collections_added[$index]);
-              $collections_added = array_values($collections_added);
-            }
+      else {
 
-            \Drupal::state()->set('cgspace_importer.collections_added', $collections_added);
-          } else {
-            $collection_num_items = $this->proxy->countCollectionItems($collection, $query);
-            $pages = ceil($collection_num_items / \Drupal::config('cgspace_importer.settings.general')->get('page_size'));
-            for ($page = 0; $page < $pages; $page++) {
-              //get the number of pages
-              $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, $query, $page]);
+        foreach ($this->collections as $community => $collections) {
+          foreach ($collections as $collection) {
+            //if collection configuration has changed and we have collections added
+            //run the BatchListProcess without query (fetch all the collection) otherwise use the lastModified query (fetch the collection since the last_run date)
+            $collections_added = \Drupal::state()->get('cgspace_importer.collections_added');
+
+            if (in_array($collection, $collections_added)) {
+              $collection_num_items = $this->proxy->countCollectionItems($collection, '');
+              $pages = ceil($collection_num_items / $this->configuration['page_size']);
+              for ($page = 0; $page < $pages; $page++) {
+                //get the number of pages
+                $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, '', $page]);
+              }
+
+              //remove the current collection from "collections_added" state variable
+              $index = array_search($collection, $collections_added);
+              if ($index !== false) {
+                unset($collections_added[$index]);
+                $collections_added = array_values($collections_added);
+              }
+
+              \Drupal::state()->set('cgspace_importer.collections_added', $collections_added);
+            } else {
+              $collection_num_items = $this->proxy->countCollectionItems($collection, $query);
+              $pages = ceil($collection_num_items / $this->configuration['page_size']);
+              for ($page = 0; $page < $pages; $page++) {
+                //get the number of pages
+                $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, $query, $page]);
+              }
             }
+            $num_items += $collection_num_items;
           }
-          $num_items += $collection_num_items;
         }
       }
 
@@ -177,7 +208,7 @@ class CGSpaceImporterCommands extends DrushCommands {
 
 
   /**
-   * Updates database since a passed date or the last_run date.
+   * Delete Nodes depending on the selected collections on the configuration page.
    *
    *   Argument provided to the drush command.
    *
@@ -189,11 +220,10 @@ class CGSpaceImporterCommands extends DrushCommands {
    *
    * @default $options []
    */
-  public function delete(array $options = ['unpublish' => false]) {
+  public function delete(array $options = ['all' => false]) {
 
     //get full list of field_cg_uuid for published cgspace_publications
     try {
-      $this->logger()->notice(t("\033[1mDeleting Nodes according to CGSpace Selected collections.\033[0m"));
       // Create batch which collects all the specified queue items and process them one after another
       $batch = new BatchBuilder();
       $batch->setTitle('Deleting CGSpace Publications Nodes.')
@@ -204,31 +234,32 @@ class CGSpaceImporterCommands extends DrushCommands {
 
       //load all uuids from backend configuration
 
-      foreach ($this->collections as $community => $collections) {
-        foreach($collections as $collection) {
-          $collection_num_items = $this->proxy->countCollectionItems($collection, '');
-          $pages = ceil($collection_num_items / \Drupal::config('cgspace_importer.settings.general')->get('page_size'));
-          for($page=0; $page<$pages; $page++) {
-            //get the number of pages
-            $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, '', $page]);
+      if($options['all'] !== false) {
+        $this->logger()->notice(t("\033[1mDeleting Nodes according to CGSpace sitemap Index.\033[0m"));
+        $batch->addOperation([BatchNodeService::class, 'batchListFromSitemapProcess']);
+      }
+      else {
+        $this->logger()->notice(t("\033[1mDeleting Nodes according to CGSpace Selected collections.\033[0m"));
+        foreach ($this->collections as $community => $collections) {
+          foreach ($collections as $collection) {
+            $collection_num_items = $this->proxy->countCollectionItems($collection, '');
+            $pages = ceil($collection_num_items / $this->configuration['page_size']);
+            for ($page = 0; $page < $pages; $page++) {
+              //get the number of pages
+              $batch->addOperation([BatchNodeService::class, 'batchListProcess'], [$collection, '', $page]);
+            }
           }
         }
       }
 
-      $connection = \Drupal::database();
-
-      $query = $connection->select('node__field_cg_uuid', 'f');
-      $query->join('node_field_data', 'n', 'n.nid = f.entity_id');
-      $query->fields('f', ['field_cg_uuid_value']);
-      $query->condition('n.type', 'cgspace_publication');
-      $query->condition('n.status', 1);
-
-      $uuids = $query->execute()->fetchCol();
-
+      $uuids = $this->getPublicationNodesUUIDs();
+      $chunk_size = $this->configuration['node_chunk_size'];
       // Create batch which collects all the specified queue items and process them one after another
-      for ($i = 0; $i < count($uuids); $i++) {
+      $current = 0;
+      foreach (array_chunk($uuids, $chunk_size) as $chunk) {
         // Create batch operations
-        $batch->addOperation([BatchNodeService::class, 'batchDeleteProcess'], [$uuids[$i]]);
+        $batch->addOperation([BatchNodeService::class, 'batchDeleteProcess'], [$chunk, $current, ceil(count($uuids) / $chunk_size)]);
+        $current++;
       }
 
       // Adds the batch sets
@@ -241,4 +272,24 @@ class CGSpaceImporterCommands extends DrushCommands {
     }
   }
 
+
+  private function getPublicationNodesUUIDs():array {
+    try {
+      $connection = \Drupal::database();
+
+      $query = $connection->select('node__field_cg_uuid', 'f');
+      $query->join('node_field_data', 'n', 'n.nid = f.entity_id');
+      $query->fields('f', ['field_cg_uuid_value']);
+      $query->condition('n.type', 'cgspace_publication');
+      $query->condition('n.status', 1);
+
+      $uuids = $query->execute()->fetchCol();
+
+      return $uuids;
+    }
+    catch (DatabaseException $ex) {
+      $this->logger()->error(t("Error connection to database: @message", ["@message" => $ex->getMessage()]));
+    }
+    return [];
+  }
 }

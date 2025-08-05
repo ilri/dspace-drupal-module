@@ -11,7 +11,6 @@ use Drupal\Core\File\FileExists;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-use Drupal\cgspace_importer\Commands\CGSpaceImporterCommands;
 /**
  * Class BatchService.
  */
@@ -26,20 +25,19 @@ class BatchNodeService {
     if(isset($context['results']['items'][$current])) {
       $item_id = $context['results']['items'][$current];
 
-      // Get the endpoint from the configuration.
-      $endpoint = \Drupal::config('cgspace_importer.settings.general')->get('endpoint');
-
-      // Instantiate the CGSpaceProxy with the required dependencies.
       $proxy = self::getProxy();
 
       $context['results'][$item_id] = $proxy->getItem($item_id);
-      $context['message'] = t('Getting @current/@total – @percentage%. (@url)', [
-        '@current' => $current + 1,
-        '@total' => $total,
-        '@percentage' => round(($current + 1) * 100 / $total, 1),
-        '@url' => $endpoint . '/server/api/core/items/' . $item_id,
-      ]);
+
+      self::printMessage("Getting", $current, $total, $context['message']);
+
     }
+  }
+
+
+  public static function batchListFromSitemapProcess(&$context) {
+
+    $context['results']['items'] = self::getProxy()->getItemsFromSitemap();
 
   }
 
@@ -48,14 +46,7 @@ class BatchNodeService {
    */
   public static function batchListProcess($collection, $query, $page, &$context) {
 
-    if(!isset($context['results']['total'])) {
-      $context['results']['total'] = [
-        'updated' => 0,
-        'created' => 0,
-        'deleted' => 0,
-        'skipped' => 0,
-      ];
-    }
+    self::init($context);
 
     if(!isset($context['results']['items'])) {
       $context['results']['items'] = [];
@@ -89,118 +80,105 @@ class BatchNodeService {
 
     $uuid = $context['results']['items'][$current];
 
-    if (!isset($context['results']['total'])) {
-      $context['results']['total'] = [
-        'updated' => 0,
-        'created' => 0,
-        'deleted' => 0,
-        'skipped' => 0
-      ];
-    }
+    self::init($context);
 
-    $nodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties([
-      'type' => 'cgspace_publication',
-      'field_cg_uuid' => $uuid
-    ]);
-
-    $endpoint = \Drupal::config('cgspace_importer.settings.general')->get('endpoint');
-    $url = $endpoint . '/server/api/core/items/' . $uuid;
     $node_importer = new NodeImporter();
 
-    if (empty($nodes)) {
-      $context['message'] = t("Adding @current/@total - @percentage%. (@url)",
-        [
-          '@current' => $current + 1,
-          '@total' => $total,
-          '@percentage' => round(($current + 1) * 100 / $total, 1),
-          '@url' => $url,
-        ]);
-      //add node
-      if(empty($context['results'][$uuid]['name']) || ($context['results'][$uuid]['name'] == 'null')) {
-        $context['results']['total']['skipped']++;
-      } else {
+    if(empty($context['results'][$uuid]['name']) || ($context['results'][$uuid]['name'] == 'null')) {
+      $context['results']['total']['skipped']++;
+    }
+    else {
+      if (empty($node = $node_importer->get($uuid))) {
+        $action = "Adding";
+        //add node
         $node_importer->add($context['results'][$uuid]);
         $context['results']['total']['created']++;
+      } else {
+        $action = "Updating";
+        //update node
+        $node_importer->update($node, $context['results'][$uuid]);
+        $context['results']['total']['updated']++;
       }
-
-    } else {
-
-      foreach ($nodes as $node) {
-        if ($node instanceof NodeInterface) {
-          if ($node->hasField('field_cg_uuid') && !$node->get('field_cg_uuid')->isEmpty()) {
-
-            $field_cg_uuid = $node->get('field_cg_uuid')->getValue();
-
-            if ($field_cg_uuid[0]['value'] == $uuid) {
-              $context['message'] = t("Updating @current/@total - @percentage%. (@url)",
-                [
-                  '@current' => $current + 1,
-                  '@total' => $total,
-                  '@percentage' => round(($current + 1) * 100 / $total, 1),
-                  '@url' => $url,
-                ]);
-              //update node
-              if(empty($context['results'][$uuid]['name']) || ($context['results'][$uuid]['name'] == 'null')) {
-                $context['results']['total']['skipped']++;
-              } else {
-                $node_importer->update($node, $context['results'][$uuid]);
-                $context['results']['total']['updated']++;
-              }
-            }
-          }
-        }
-      }
+      self::printMessage($action, $current, $total, $context['message']);
     }
 
   }
 
 
-  public static function batchDeleteProcess($uuid, &$context) {
+  /**
+   * Common batch processing callback for all operations.
+   */
+  public static function batchCreateFromSitemapProcess($uuids, $current, $total, &$context) {
 
-    if(!isset($context['results']['total'])) {
-      $context['results']['total'] = [
-        'updated' => 0,
-        'created' => 0,
-        'deleted' => 0,
-        'skipped' => 0,
-      ];
+    self::init($context);
+
+    $node_importer = new NodeImporter();
+    $proxy = self::getProxy();
+    $skipped = 0;
+    $added = 0;
+    $processed = $current * \Drupal::config('cgspace_importer.settings.general')->get('node_chunk_size');
+    foreach($uuids as $uuid) {
+
+      if (!$node_importer->exists($uuid)) {
+
+        $context['results'][$uuid] = $proxy->getItem($uuid);
+        self::printMessage("Getting", $current, $total, $context['message']);
+
+        //add node
+        if (empty($context['results'][$uuid]['name']) || ($context['results'][$uuid]['name'] == 'null')) {
+
+          \Drupal::logger('cgspace_importer')->warning(t('CGSpace Item @uuid has invalid name: @name.', [
+            '@uuid' => $uuid,
+            '@name' =>  $context['results'][$uuid]['name'] ?? '',
+          ])
+          );
+
+          $context['results']['total']['skipped']++;
+          $skipped++;
+        } else {
+          $node_importer->add($context['results'][$uuid]);
+          $context['results']['total']['created']++;
+          $added++;
+        }
+      } else {
+        $skipped++;
+      }
+      $processed++;
     }
 
-    if(!in_array($uuid, $context['results']['items'])) {
+    self::printMessage("$processed Processed, $added Added, $skipped Skipped Chunk:", $current, $total, $context['message']);
+  }
 
+
+  public static function batchDeleteProcess($uuids, $current, $total, &$context) {
+
+    self::init($context);
+
+    $uuids_to_delete = [];
+    foreach($uuids as $uuid) {
+      if(!isset($context['results']['items']) || !in_array($uuid, $context['results']['items'])) {
+        $uuids_to_delete[] = $uuid;
+      }
+    }
+
+    if(!empty($uuids_to_delete)) {
       try {
-        $nodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties([
-          'type' => 'cgspace_publication',
-          'field_cg_uuid' => $uuid
-        ]);
-
-        if(!empty($nodes)) {
-          $node = reset($nodes);
-
-          if($node instanceof NodeInterface) {
-
-              $node->delete();
-              $context['message'] = t('Deleting node @nid (@uuid).', [
-                '@nid'  => $node->id(),
-                '@uuid' => $uuid
-              ]);
-
-          }
+        $node_importer = new NodeImporter();
+        if($node_importer->delete($uuids, $context)) {
+          $context['results']['total']['deleted']++;
         }
       }
       catch(EntityStorageException $ex) {
-        \Drupal::messenger()->addError(
+        \Drupal::logger('cgspace_importer')->addError(
           t("Error deleting node @nid. @error",
             [
-              '@item' => $node->id(),
               '@error' => $ex->getMessage()
             ])
         );
       }
-
-      $context['results']['total']['deleted']++;
     }
 
+    self::printMessage("Deleting...", $current, $total, $context['message']);
 
   }
   /**
@@ -288,5 +266,27 @@ class BatchNodeService {
     $endpoint = $configFactory->get('cgspace_importer.settings.general')->get('endpoint');
 
     return new CGSpaceProxy($endpoint, $configFactory, $httpClient);
+  }
+
+  private static function init(&$context) {
+    if(!isset($context['results']['total'])) {
+      $context['results']['total'] = [
+        'updated' => 0,
+        'created' => 0,
+        'deleted' => 0,
+        'skipped' => 0,
+      ];
+    }
+  }
+
+  private static function printMessage($action, $current, $total, &$message) {
+
+    $message = t("@action @current/@total - @percentage%.",
+      [
+        '@action' => $action,
+        '@current' => $current + 1,
+        '@total' => $total,
+        '@percentage' => round(($current + 1) * 100 / $total, 1),
+      ]);
   }
 }

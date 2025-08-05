@@ -27,7 +27,7 @@ class TruncateProcessor extends BaseProcessor implements NodeImporterProcessorIn
 
     if(!is_null($value)) {
       return [
-        $target => substr($value, 0, $this->configuration['length'])
+        $target => mb_substr($value, 0, $this->configuration['length'])
       ];
     }
 

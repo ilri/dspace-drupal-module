@@ -9,11 +9,15 @@ class NodeImporter {
 
   private $config;
   private $plugin_manager;
+  private $connection;
+  private $entityStorage;
 
   public function __construct()
   {
     $this->config = \Drupal::config('cgspace_importer.mappings');
     $this->plugin_manager = \Drupal::service('plugin.manager.cgspace_importer.processors');
+    $this->connection = \Drupal::database();
+    $this->entityStorage = \Drupal::entityTypeManager()->getStorage('node');
   }
 
   public function add(array $item) {
@@ -35,7 +39,7 @@ class NodeImporter {
       $node->save();
     }
     catch(\Exception $ex) {
-      \Drupal::messenger()->addError(
+      \Drupal::logger('cgspace_importer')->error(
         t("Unable to save Item @item. @error",
           [
             '@item' => $item['uuid'],
@@ -84,8 +88,56 @@ class NodeImporter {
         $data += $field;
       }
     }
-
     return $data;
+  }
+
+  public function exists($uuid):bool {
+
+    $query = $this->connection->select('node__'.$this->config->get('uuid_field'), 'f');
+    $query->join('node_field_data', 'n', 'n.nid = f.entity_id');
+    $query->fields('f', [$this->config->get('uuid_field').'_value']);
+    $query->condition('n.type', $this->config->get('content_type'));
+    $query->condition('f.'.$this->config->get('uuid_field').'_value', $uuid);
+
+    return !empty($query->execute()->fetchCol());
+  }
+
+  public function get($uuid) {
+    $nodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties([
+      'type' => $this->config->get('content_type'),
+      $this->config->get('uuid_field') => $uuid
+    ]);
+
+    return reset($nodes);
+  }
+
+  public function delete($uuids, &$context) {
+    try {
+
+      $nids = \Drupal::entityQuery('node')
+        ->accessCheck(FALSE)
+        ->condition($this->config->get('uuid_field'), $uuids, 'IN')
+        ->execute();
+
+      if(!empty($nids) && !empty($nodes = $this->entityStorage->loadMultiple($nids))) {
+        $this->entityStorage->delete($nodes);
+
+        $context['message'] = t('Deleting nodes (@nids).', [
+          '@nids' => implode(',', $nids)
+        ]);
+
+        return true;
+      }
+      return false;
+    }
+    catch (\Exception $ex) {
+      \Drupal::logger('cgspace_importer')->error(
+        t("Error deleting node . @error",
+          [
+            '@error' => $ex->getMessage()
+          ])
+      );
+    }
   }
 
 }

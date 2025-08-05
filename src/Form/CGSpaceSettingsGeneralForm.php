@@ -49,6 +49,16 @@ class CGSpaceSettingsGeneralForm extends CGSpaceSettingsBaseForm {
       '#required' => true,
     ];
 
+    $form['node_chunk_size'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Chunk size of nodes to be processed at once'),
+      '#description' => $this->t('The amount of nodes to be processed at each batch run (default:50). Tweak for best performances!'),
+      '#default_value' => $this->config(static::SETTINGS)->get('node_chunk_size') ?? 50,
+      '#min' => 10,
+      '#max' => 100,
+      '#required' => true,
+    ];
+
     $form['debug'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('DEBUG mode.'),
@@ -83,6 +93,7 @@ class CGSpaceSettingsGeneralForm extends CGSpaceSettingsBaseForm {
       ->set('endpoint', $form_state->getValue('endpoint'))
       ->set('importer', $form_state->getValue('importer'))
       ->set('page_size', $form_state->getValue('page_size'))
+      ->set('node_chunk_size', $form_state->getValue('node_chunk_size'))
       ->set('debug', $form_state->getValue('debug'))
       ->save();
 

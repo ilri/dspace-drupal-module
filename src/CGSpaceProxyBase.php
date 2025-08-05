@@ -66,6 +66,45 @@ Class CGSpaceProxyBase {
     return $result;
   }
 
+  protected function getXMLData($url) {
+
+    $importer = \Drupal::config('cgspace_importer.settings.general')->get('importer');
+    $result = '';
+
+    try {
+      $request = $this->httpClient->request('GET', $url, [
+        'headers' => [
+          'User-Agent' => $importer." Publications Importer BOT"
+        ],
+        'timeout' => 60000,
+        'on_stats' => function (TransferStats $stats) {
+          if(\Drupal::config('cgspace_importer.settings.general')->get('debug')) {
+            \Drupal::logger('cgspace_importer')->notice(
+              t('[@time] CGSpace request to @uri.',
+                [
+                  '@uri' => $stats->getEffectiveUri(),
+                  '@time' => $stats->getTransferTime()
+                ])
+            );
+          }
+        }
+      ]);
+      $status = $request->getStatusCode();
+      $resultXML = $request->getBody()->getContents();
+      $result = simplexml_load_string($resultXML);
+
+      if (!$result || $status != 200) {
+        throw new RequeueException();
+      }
+    }
+    catch (RequestException $e) {
+      //An error happened.
+      print $e->getMessage();
+    }
+
+    return $result;
+  }
+
 
   protected function getDataBitstream($url) {
     $importer = \Drupal::config('cgspace_importer.settings.general')->get('importer');

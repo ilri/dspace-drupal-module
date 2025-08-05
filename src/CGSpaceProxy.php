@@ -150,16 +150,18 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   }
 
-  public function getPagedItemsByQuery($collection, $searchQuery='', $page=0, $result=[]) {
+  public function getPagedItemsByQuery($collection='', $searchQuery='', $page=0, $result=[]) {
 
     $query = [
       "query" => [
-        "scope" => $collection,
         "dsoType" => "item",
         "size" => \Drupal::config('cgspace_importer.settings.general')->get('page_size'),
         "page" => $page
       ]
     ];
+    if(!empty($collection)) {
+      $query["query"] += ["scope" => $collection];
+    }
     if(!empty($searchQuery)) {
       $query["query"] += ["query" => $searchQuery];
     }
@@ -198,6 +200,23 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
+  public function getItemsFromSitemap():array {
+    $result = [];
+    $sitemap_index = $this->getXMLData("$this->endpoint/sitemap_index.xml");
+
+    foreach($sitemap_index as $sitemap_page) {
+
+      $sitemap = $this->getXMLData((string) $sitemap_page->loc);
+      foreach($sitemap as $sitemap_item) {
+        if (preg_match('#/items/([0-9a-f\-]+)$#i', (string) $sitemap_item->loc, $matches)) {
+          $result[] = $matches[1];
+        }
+      }
+    }
+
+    return $result;
+  }
+
   /**
    * Searches for bitstream Thumbnail and PDF and add them to item as root elements to avoid not supported jsonpath expressions no migrate importer
    * @param array $item
@@ -207,36 +226,44 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
    */
   private function getItemBitstreams(array $item): array {
 
-    if(isset($item['_embedded']['bundles']['_embedded']['bundles'])) {
-      foreach($item['_embedded']['bundles']['_embedded']['bundles'] as $bundle) {
-        if(isset($bundle['_embedded']['bitstreams']['_embedded']['bitstreams'])) {
-          foreach($bundle['_embedded']['bitstreams']['_embedded']['bitstreams'] as $bitstream) {
-            if(isset($bitstream['bundleName']) && ($bitstream['bundleName'] === 'ORIGINAL')) {
-              if(isset($bitstream['_links']['thumbnail']['href'])) {
+    try {
+      if (isset($item['_embedded']['bundles']['_embedded']['bundles'])) {
+        foreach ($item['_embedded']['bundles']['_embedded']['bundles'] as $bundle) {
+          if (isset($bundle['_embedded']['bitstreams']['_embedded']['bitstreams'])) {
+            foreach ($bundle['_embedded']['bitstreams']['_embedded']['bitstreams'] as $bitstream) {
+              if (isset($bitstream['bundleName']) && ($bitstream['bundleName'] === 'ORIGINAL')) {
+                if (isset($bitstream['_links']['thumbnail']['href'])) {
 
-                $thumbnail = $this->getDataBitstream($bitstream['_links']['thumbnail']['href']);
-                if(!empty($thumbnail)) {
-                  if (isset($thumbnail['_links']['content']['href'])) {
-                    $item['picture'] = [
-                      'name' => $thumbnail['name'],
-                      'uri' => $thumbnail['_links']['content']['href']
-                    ];
+                  $thumbnail = $this->getDataBitstream($bitstream['_links']['thumbnail']['href']);
+                  if (!empty($thumbnail)) {
+                    if (isset($thumbnail['_links']['content']['href'])) {
+                      $item['picture'] = [
+                        'name' => $thumbnail['name'],
+                        'uri' => $thumbnail['_links']['content']['href']
+                      ];
+                    }
                   }
                 }
-              }
 
-              if(isset($bitstream['_links']['content']['href'])) {
-                $item['attachment'] = [
-                  'name' => $bitstream['name'],
-                  'uri' => $bitstream['_links']['content']['href']
-                ];
+                if (isset($bitstream['_links']['content']['href'])) {
+                  $item['attachment'] = [
+                    'name' => $bitstream['name'],
+                    'uri' => $bitstream['_links']['content']['href']
+                  ];
+                }
               }
             }
           }
         }
       }
+    } catch (\Exception $ex) {
+      \Drupal::logger('cgspace_importer')->error(
+        t("Error getting item Bitstream: @message", [
+            "@message" => $ex->getMessage()
+          ]
+        )
+      );
     }
-
     return $item;
   }
 

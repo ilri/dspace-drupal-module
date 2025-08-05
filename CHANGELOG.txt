@@ -1,3 +1,22 @@
+# Version 1.1.2
+• Changed Drush commands:
+  - cgspace_importer:create [--all]
+      Create Publication nodes generating the list through the CGSpace API according to communities and collections selected on the configuration page.
+    --all
+      if --all option is specified the list of Publication nodes is generated from CGSpace sitemap index
+  - cgspace_importer:update [YYYY-MM-DD] [--all]
+      Update/Creates Create Publication nodes generating the list through the CGSpace API according to communities and collections selected on the configuration page.
+      if date argument is specified the list of updated/added items is generated according to it
+    --all
+      if --all option is specified the list of Publication nodes is generated through CGSpace API without taking care of collections and communities selected on the configuration page.
+  - cgspace_importer:delete [--all]
+      Delete Publication nodes comparing with the list of items generated through the CGSpace API according to communities and collections selected on the configuration page.
+    --all
+      if --all option is specified the Publication nodes are compared to the list of items generated from the CGSpace sitemap index.
+• General settings page: added new setting for chunk size for create and delete commands so that items are processed in small sets to improve performances
+• Updated ImageProcessor: destination protocol and sub folder are now taken from field configuration and the filename is truncated if necessary.
+• Bugfix: Truncate processor now uses mb_string for UTF8 support
+• Removed cgspace_importer_ldap sub module since it needs to be developed from scratch as NodeImporterProcessor Plugin
 # Version 1.1.1
 • New Feature: removed hardcoded fields mapping and added a configuration file. Created a new NodeImporterProcessor Plugin to allow post processing transformers
 • Added check all/uncheck all functionality on backend configuration forms

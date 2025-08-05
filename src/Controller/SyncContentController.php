@@ -72,16 +72,6 @@ class SyncContentController extends ControllerBase implements ContainerInjection
 
   }
 
-  public function syncPublications() {
-    $migration_id = 'cgspace_importer_publication';
-    $migration = \Drupal::service('plugin.manager.migration')->createInstance($migration_id);
-
-    $executable = new MigrateBatchExecutable($migration, new MigrateMessage(), ['update' => true]);
-    $executable->batchImport();
-
-    return batch_process('<front>');
-
-  }
 
 */
 
