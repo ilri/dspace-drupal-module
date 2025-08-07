@@ -1,17 +1,30 @@
+# Version 1.1.3
+• New Feature: Created a new Tab on the Admin interface under admin/content/cgspace that let user run the batch process for update command directly from the UI
+• Bugfix: Error on installation if destination folder doesn't exist. Image Processor now creates destination folder set in the target field configuration.
+• Bugfix: if filtered_html doesn't exists MarkupProcessor doesn't have a fallback. Now if MarkupProcessor configuration filter format doesn't exist the processor fallbacks to plain_text
+• Bugfix: Drupal::state variable is not deleted on uninstall
+• BugFix: Applied Taxonomy mapping improvement hotfix
+• Added Code comments
+• Added Readme.md with instructions
+• Changed BatchNodeService class to not use static methods for Batch operations
+• Removed SyncContentController Class
+• Overall code clean up and refactoring
+• moved hook_uninstall to .install file
+• Improved logging system
 # Version 1.1.2
 • Changed Drush commands:
   - cgspace_importer:create [--all]
-      Create Publication nodes generating the list through the CGSpace API according to communities and collections selected on the configuration page.
-    --all
+    Create Publication nodes by generating the list through the CGSpace API according to communities and collections selected on the configuration page.
+    - --all
       if --all option is specified the list of Publication nodes is generated from CGSpace sitemap index
   - cgspace_importer:update [YYYY-MM-DD] [--all]
-      Update/Creates Create Publication nodes generating the list through the CGSpace API according to communities and collections selected on the configuration page.
-      if date argument is specified the list of updated/added items is generated according to it
-    --all
+    Update or create Publication nodes by generating the list through the CGSpace API according to communities and collections selected on the configuration page.
+    If a date argument is specified, the list of updated or added items is generated accordingly
+    - --all
       if --all option is specified the list of Publication nodes is generated through CGSpace API without taking care of collections and communities selected on the configuration page.
   - cgspace_importer:delete [--all]
-      Delete Publication nodes comparing with the list of items generated through the CGSpace API according to communities and collections selected on the configuration page.
-    --all
+    Delete Publication nodes comparing with the list of items generated through the CGSpace API according to communities and collections selected on the configuration page.
+    - --all
       if --all option is specified the Publication nodes are compared to the list of items generated from the CGSpace sitemap index.
 • General settings page: added new setting for chunk size for create and delete commands so that items are processed in small sets to improve performances
 • Updated ImageProcessor: destination protocol and sub folder are now taken from field configuration and the filename is truncated if necessary.

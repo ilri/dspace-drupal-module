@@ -1,1 +1,19 @@
 <?php
+
+/**
+ * hook_uninstall
+ */
+function cgspace_importer_uninstall() {
+  \Drupal::configFactory()->getEditable('cgspace_importer.settings.processors.tags')->delete();
+  \Drupal::configFactory()->getEditable('cgspace_importer.settings.processors.research_initiatives')->delete();
+  \Drupal::configFactory()->getEditable('cgspace_importer.settings.processors.impact_areas')->delete();
+
+  \Drupal::configFactory()->getEditable('cgspace_importer.settings.general')->delete();
+  \Drupal::configFactory()->getEditable('cgspace_importer.settings.communities')->delete();
+  \Drupal::configFactory()->getEditable('cgspace_importer.settings.collections')->delete();
+
+  \Drupal::configFactory()->getEditable('cgspace_importer.mappings')->delete();
+
+  \Drupal::state()->delete('cgspace_importer.last_run');
+
+}

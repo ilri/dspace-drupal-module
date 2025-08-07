@@ -29,7 +29,7 @@ class NodeImporterProcessor extends Plugin {
 
 
   /**
-   * The human-readable name of the webform element.
+   * The human-readable name of the processor.
    *
    * @var \Drupal\Core\Annotation\Translation
    *
@@ -38,7 +38,7 @@ class NodeImporterProcessor extends Plugin {
   public $label;
 
   /**
-   * The human-readable name of the webform element.
+   * The human-readable description of the processor
    *
    * @var \Drupal\Core\Annotation\Translation
    *

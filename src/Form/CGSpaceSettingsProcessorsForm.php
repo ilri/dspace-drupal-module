@@ -163,28 +163,37 @@ class CGSpaceSettingsProcessorsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state)
   {
 
+    $initiatives = $form_state->getValue('research_initiatives');
+    $initiativeVid = $initiatives['create'] == 0 ? $initiatives['vocabulary'] : 'cgspace_research_initiatives';
+
     $this->setMappingVocabulary(
       $form_state,
       'research_initiatives',
-      'cgspace_research_initiatives',
+      $initiativeVid,
       'Research Initiatives',
       'Vocabulary used to map CGSpace Research Initiatives',
       'field_cg_initiatives_ref'
     );
 
+    $impacts = $form_state->getValue('impact_areas');
+    $impactsVid = $impacts['create'] == 0 ? $impacts['vocabulary'] : 'cgspace_impact_areas';
+
     $this->setMappingVocabulary(
       $form_state,
       'impact_areas',
-      'cgspace_impact_areas',
+      $impactsVid,
       'Impact Areas',
       'Vocabulary used to map Impact Areas',
       'field_cg_impact_areas_ref'
     );
 
+    $tags = $form_state->getValue('tags');
+    $tagsVid = $tags['create'] == 0 ? $tags['vocabulary'] : 'cgspace_tags';
+
     $this->setMappingVocabulary(
       $form_state,
       'tags',
-      'cgspace_tags',
+      $tagsVid,
       'Tags',
       'Vocabulary used to map Tags',
       'field_cg_tags_ref'
@@ -216,11 +225,16 @@ class CGSpaceSettingsProcessorsForm extends ConfigFormBase {
           ))->save();
         }
         catch (EntityStorageException $exception) {
-
+          \Drupal::logger('cgspace_importer')->error('Unable to create @vocabulary: @message.', [
+            '@vocabulary' => $name,
+            '@message' => $exception->getMessage()
+          ]);
         }
       }
       else {
-        \Drupal::messenger()->addMessage($name . ' vocabulary already exits');
+        \Drupal::logger('cgspace_importer')->error('@vocabulary vocabulary already exits.', [
+          '@vocabulary' => $name
+        ]);
       }
     }
 
@@ -242,7 +256,10 @@ class CGSpaceSettingsProcessorsForm extends ConfigFormBase {
             $field_storage->save();
           }
           catch (EntityStorageException $exception) {
-
+            \Drupal::logger('cgspace_importer')->error('Unable to create @vocabulary: @message.', [
+              '@vocabulary' => $name,
+              '@message' => $exception->getMessage()
+            ]);
           }
         }
       }

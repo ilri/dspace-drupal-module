@@ -3,73 +3,136 @@
 namespace Drupal\cgspace_importer;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\ImmutableConfig;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Queue\RequeueException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\TransferStats;
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 
 Class CGSpaceProxyBase {
 
-  protected $endpoint;
-  protected ClientInterface $httpClient;
+  use DependencySerializationTrait;
 
-  public function __construct($endpoint, ConfigFactoryInterface $configFactory, ClientInterface $httpClient) {
-    $this->endpoint = empty($endpoint)? $configFactory->get('cgspace_importer.settings.general')->get('endpoint') : $endpoint;
+  protected string $endpoint;
+  protected ClientInterface $httpClient;
+  protected ImmutableConfig $configuration;
+  protected LoggerChannelInterface $logger;
+
+  public function __construct(string $endpoint, ConfigFactoryInterface $configFactory, ClientInterface $httpClient, LoggerChannelFactoryInterface $loggerFactory) {
+    $this->configuration = $configFactory->get('cgspace_importer.settings.general');
+    $this->endpoint = empty($endpoint)? $this->configuration->get('endpoint') : $endpoint;
     $this->httpClient = $httpClient;
+    $this->logger = $loggerFactory->get('cgspace_importer');
+
   }
 
   public static function create(ContainerInterface $container): static {
+    $configFactory = $container->get('config.factory');
+    $configuration = $configFactory->get('cgspace_importer.settings.general');
     return new static(
-      $container->get('config.factory'),
+      $configuration->get('endpoint'),
+      $configFactory,
       $container->get('http_client'),
+      $container->get('logger.factory'),
     );
   }
 
-
-  protected function getData($url) {
-
-    $importer = \Drupal::config('cgspace_importer.settings.general')->get('importer');
-    $result = '';
-
+  /**
+   * Load Data from URL with JSON endpoint and return them as array
+   *
+   * @param $url
+   * The url where to make the http call
+   * @return mixed|void
+   * the result array
+   */
+  protected function getJsonData(string $url) {
     try {
-      $request = $this->httpClient->request('GET', $url, [
-        'headers' => [
-          'User-Agent' => $importer." Publications Importer BOT"
-        ],
-        'timeout' => 60000,
-        'on_stats' => function (TransferStats $stats) {
-          if(\Drupal::config('cgspace_importer.settings.general')->get('debug')) {
-            \Drupal::logger('cgspace_importer')->notice(
-              t('[@time] CGSpace request to @uri.',
-                [
-                  '@uri' => $stats->getEffectiveUri(),
-                  '@time' => $stats->getTransferTime()
-                ])
-            );
-          }
-        }
-      ]);
-      $status = $request->getStatusCode();
-      $resultJson = $request->getBody()->getContents();
+      $resultJson = $this->getData($url);
       $result = json_decode($resultJson, true);
 
-      if (!$result || $status != 200) {
+      if (!$result) {
         throw new RequeueException();
       }
-    }
-    catch (RequestException $e) {
-      //An error happened.
-      print $e->getMessage();
-    }
 
-    return $result;
+      return $result;
+    }
+    catch (RequestException $ex) {
+      //An error happened.
+      print $ex->getMessage();
+    }
   }
 
-  protected function getXMLData($url) {
+  /**
+   * Load Data from URL with XML endpoint and return them as SimpleXMLElement
+   *
+   * @param $url
+   * The url where to make the http call
+   * @return void|SimpleXMLElement
+   * the result SimpleXMLElement object
+   */
+  protected function getXMLData(string $url) {
+    try {
+      $resultXML = $this->getData($url);
+      $result = simplexml_load_string($resultXML);
 
-    $importer = \Drupal::config('cgspace_importer.settings.general')->get('importer');
-    $result = '';
+      if (!$result) {
+        throw new RequeueException();
+      }
+
+      return $result;
+    }
+    catch (RequestException $ex) {
+      //An error happened.
+      print $ex->getMessage();
+    }
+  }
+
+
+  /**
+   * Load Data from URL with JSON endpoint and return them as array
+   *
+   * @param string $url
+   * The url where to make the http call
+   * @return mixed|void
+   * the result array
+   */
+  protected function getDataBitstream(string $url) {
+
+    try {
+      $resultJson = $this->getData($url);
+      if(!is_null($resultJson)) {
+        return json_decode($resultJson, true);
+      }
+      return [];
+    }
+    catch (RequestException $ex) {
+      // Non bloccare il flusso: gestisci l'errore silenziosamente o loggalo
+      if ($ex->hasResponse() && $ex->getResponse()->getStatusCode() == 401) {
+        $this->logger->warning('401 Error while trying to get bitstream URL: @url', ['@url' => $url]);
+      }
+      else {
+        $this->logger->error('Error getting Item Bitstream: @message', [
+            '@message' => $ex->getMessage()
+          ]);
+      }
+    }
+  }
+
+  /**
+   * Raw Load Data from URL endpoint and return the response body content
+   *
+   * @param $url
+   * The url where to make the http call
+   * @return mixed|void
+   * the httpclient response body content
+   */
+  private function getData(string $url) {
+
+    $importer = $this->configuration->get('importer');
 
     try {
       $request = $this->httpClient->request('GET', $url, [
@@ -78,8 +141,8 @@ Class CGSpaceProxyBase {
         ],
         'timeout' => 60000,
         'on_stats' => function (TransferStats $stats) {
-          if(\Drupal::config('cgspace_importer.settings.general')->get('debug')) {
-            \Drupal::logger('cgspace_importer')->notice(
+          if($this->configuration->get('debug')) {
+            $this->logger->notice(
               t('[@time] CGSpace request to @uri.',
                 [
                   '@uri' => $stats->getEffectiveUri(),
@@ -90,50 +153,20 @@ Class CGSpaceProxyBase {
         }
       ]);
       $status = $request->getStatusCode();
-      $resultXML = $request->getBody()->getContents();
-      $result = simplexml_load_string($resultXML);
 
-      if (!$result || $status != 200) {
+      if ($status != 200) {
         throw new RequeueException();
       }
-    }
-    catch (RequestException $e) {
-      //An error happened.
-      print $e->getMessage();
-    }
-
-    return $result;
-  }
-
-
-  protected function getDataBitstream($url) {
-    $importer = \Drupal::config('cgspace_importer.settings.general')->get('importer');
-    $result = '';
-
-    try {
-      $request = $this->httpClient->request('GET', $url, [
-        'headers' => [
-          'User-Agent' => $importer . " Publications Importer BOT"
-        ],
-        'timeout' => 60000,
-      ]);
-      $status = $request->getStatusCode();
-
-      if ($status === 200) {
-        $resultJson = $request->getBody()->getContents();
-        $result = json_decode($resultJson, true);
-      }
-    }
-    catch (RequestException $e) {
-      // Non bloccare il flusso: gestisci l'errore silenziosamente o loggalo
-      if ($e->hasResponse() && $e->getResponse()->getStatusCode() == 401) {
-        \Drupal::logger('cgspace_importer')->warning('401 Error while trying to get bitstream URL: @url', ['@url' => $url]);
-      }
       else {
-        \Drupal::logger('cgspace_importer')->error('Error while trying to get bitstream: @message', ['@message' => $e->getMessage()]);
+        return $request->getBody()->getContents();
       }
     }
-
-    return $result;
+    catch (RequestException $ex) {
+      //An error happened.
+      $this->logger->error('Error getting Item (@code): @message', [
+        '@code' => $ex->getCode(),
+        '@message' => $ex->getMessage()
+      ]);
+    }
   }
 }

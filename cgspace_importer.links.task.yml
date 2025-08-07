@@ -18,3 +18,8 @@ cgspace_importer.processors:
   base_route: cgspace_importer.settings_general
   title: 'Processors'
   weight: 3
+cgspace_importer.sync:
+  title: 'Sync CGSpace'
+  base_route: system.admin_content
+  route_name: cgspace_importer.sync
+  weight: 100

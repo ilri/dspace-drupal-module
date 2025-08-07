@@ -1,6 +1,6 @@
 services:
   cgspace_importer.commands:
     class: \Drupal\cgspace_importer\Commands\CGSpaceImporterCommands
-    arguments: ['@config.factory', '@http_client', '@serializer']
+    arguments: ['@config.factory', '@http_client', '@logger.factory']
     tags:
       - { name: drush.command }

@@ -9,7 +9,7 @@ use Drupal\cgspace_importer\NodeImporterProcessorInterface;
  * @NodeImporterProcessor(
  *   id = "cgspace_processor_doi",
  *   label = @Translation("Doi Processor"),
- *   description = @Translation("Provides default processor for CGSpace Importer plugin"),
+ *   description = @Translation("Provides DOI processor for CGSpace Importer plugin"),
  *   )
  */
 class DoiProcessor extends BaseProcessor implements NodeImporterProcessorInterface {

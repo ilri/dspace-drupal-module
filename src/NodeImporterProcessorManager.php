@@ -2,7 +2,6 @@
 
 namespace Drupal\cgspace_importer;
 
-use Drupal\Component\Plugin\PluginManagerInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -10,7 +9,7 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 
 /**
- * Provides a plugin manager for webform element plugins.
+ * Provides a plugin manager for NodeProcessors plugins.
  *
  */
 class NodeImporterProcessorManager extends DefaultPluginManager {
@@ -31,14 +30,14 @@ class NodeImporterProcessorManager extends DefaultPluginManager {
   protected $entityTypeManager;
 
   /**
-   * List of already instantiated webform element plugins.
+   * List of already instantiated nodeProcessors plugins.
    *
    * @var array
    */
   protected $instances = [];
 
   /**
-   * Constructs a WebformDonationSMSGatewayManager object.
+   * Constructs a NodeImporterProcessorManager object.
    *
    * @param \Traversable $namespaces
    *   An object that implements \Traversable which contains the root paths
@@ -64,7 +63,6 @@ class NodeImporterProcessorManager extends DefaultPluginManager {
    */
   public function createInstance($plugin_id, array $configuration = []) {
     // If configuration is empty create a single reusable instance for each
-    // Webform element plugin.
     if (empty($configuration)) {
       if (!isset($this->instances[$plugin_id])) {
         $this->instances[$plugin_id] = parent::createInstance($plugin_id);
@@ -74,12 +72,6 @@ class NodeImporterProcessorManager extends DefaultPluginManager {
     else {
       return parent::createInstance($plugin_id, $configuration);
     }
-  }
-
-
-  public function process($source, $target): array
-  {
-    return [];
   }
 
 }

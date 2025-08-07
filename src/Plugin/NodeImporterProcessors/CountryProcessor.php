@@ -14,7 +14,10 @@ use Drupal\cgspace_importer\NodeImporterProcessorInterface;
  */
 class CountryProcessor extends BaseProcessor implements NodeImporterProcessorInterface {
 
-  public function getSourceValue(string $source, array $item)
+  /**
+   * {@inheritDoc}
+   */
+  protected function getSourceValue(string $source, array $item): mixed
   {
     $source_value = null;
 
@@ -55,8 +58,14 @@ class CountryProcessor extends BaseProcessor implements NodeImporterProcessorInt
     return [];
   }
 
-
-  private function getCountryCode($name) {
+  /**
+   * Return the Country code from country name
+   * @param $name
+   * the country name
+   * @return string
+   * the country code
+   */
+  private function getCountryCode($name):string {
     $country_code = '';
     $countries = [
       'AC' => 'Ascension Island',

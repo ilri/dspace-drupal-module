@@ -9,11 +9,18 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   use StringTranslationTrait;
 
-
-
-  public function countCollectionItems($collection_uuid, $searchQuery = ''): int {
-
-    $num_items = 0;
+  /**
+   * Calls the CGSpace discover API making the query for just 1 item
+   * for the passed collection UUID and returns the total amount of items
+   *
+   * @param string $collection_uuid
+   * The collection UUID
+   * @param string $searchQuery
+   * The search query for CGSpace discover API
+   * @return int
+   * the total amount of items returned by the CGSpace API
+   */
+  public function countCollectionItems(string $collection_uuid, string $searchQuery = ''): int {
 
     try {
       $query = [
@@ -31,14 +38,16 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
       $url = Url::fromUri("$this->endpoint/server/api/discover/search/objects", $query);
 
-      $result = $this->getData($url->toString());
+      $result = $this->getJsonData($url->toString());
 
       if(isset($result['_embedded']['searchResult']['page']['totalElements'])) {
-        $num_items = $result['_embedded']['searchResult']['page']['totalElements'];
+        return $result['_embedded']['searchResult']['page']['totalElements'];
       }
+
+
     }
     catch(\Exception $ex) {
-      \Drupal::logger('cgspace_importer')->error(
+      $this->logger->error(
         t("Error getting number of items for collection @collection: @message", [
             "@collection" => $collection_uuid,
             "@message" => $ex->getMessage(),
@@ -47,22 +56,28 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
       );
     }
 
-    return $num_items;
+    return 0;
   }
 
-
+  /**
+   * Get the list of communities from CGSpace API
+   * and returns it as an array indexed by UUID ready for creating FormApi Checkboxes
+   *
+   * @return array
+   * an array of communities by uuids => name
+   */
   public function getCommunities(): array {
     $result = array();
 
     try {
-      $communities = $this->getData($this->endpoint . '/server/api/core/communities/search/top?size=100');
+      $communities = $this->getJsonData($this->endpoint . '/server/api/core/communities/search/top?size=100');
 
       foreach ($communities["_embedded"]["communities"] as $community) {
         $result[(string)$community["uuid"]] = (string)$community["name"] . ' <strong>(' . (string)$community["archivedItemsCount"] . ')</strong>';
       }
     }
     catch(\Exception $ex) {
-      \Drupal::logger('cgspace_importer')->error(
+      $this->logger->error(
         t("Error getting communities: @message", [
             "@message" => $ex->getMessage(),
           ]
@@ -73,11 +88,19 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
-  public function getSubCommunities($community): array {
-    $result = array();
+  /**
+   * Recursive function to get subcommunities from CGSpace API
+   *
+   * @param string $community
+   * the parent community UUID
+   * @return array
+   * the subcommunities array indexed by UUID
+   */
+  public function getSubCommunities(string $community): array {
+    $result = [];
 
     try {
-      $communities = $this->getData("$this->endpoint/server/api/core/communities/$community/subcommunities?size=100");
+      $communities = $this->getJsonData("$this->endpoint/server/api/core/communities/$community/subcommunities?size=100");
 
       foreach ($communities["_embedded"]["subcommunities"] as $subCommunity) {
         if(!empty($subCommunity))
@@ -85,7 +108,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
       }
     }
     catch(\Exception $ex) {
-      \Drupal::logger('cgspace_importer')->error(
+      $this->logger->error(
         t("Error getting sub-communities for community @community: @message", [
             "@community" => $community,
             "@message" => $ex->getMessage(),
@@ -97,12 +120,21 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
-  public function getCollections($community): array {
+  /**
+   * Get the list of collections for a passed community from CGSpace API
+   * and returns it as an indexed by UUID array ready for FormAPI checkboxes
+   *
+   * @param string $community
+   * The community UUID
+   * @return array
+   * The array of collections indexed by UUID ready for FormAPI Checkboxes
+   */
+  public function getCollections(string $community): array {
 
-    $result = array();
+    $result = [];
 
     try {
-      $collections = $this->getData("$this->endpoint/server/api/core/communities/$community/collections?size=1000");
+      $collections = $this->getJsonData("$this->endpoint/server/api/core/communities/$community/collections?size=1000");
 
       //extract communities result array
       foreach ($collections["_embedded"]["collections"] as $collection) {
@@ -110,7 +142,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
       }
     }
     catch(\Exception $ex) {
-      \Drupal::logger('cgspace_importer')->error(
+      $this->logger->error(
         t("Error getting collections for community @community: @message", [
             "@community" => $community,
             "@message" => $ex->getMessage(),
@@ -122,7 +154,15 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
-  public function getCommunityName($community): string {
+  /**
+   * Get the community name from UUID using the CGSpace API if it's not available in cache
+   *
+   * @param string $community
+   * the CGSpace Community UUID
+   * @return string
+   * The CGSpace Community name
+   */
+  public function getCommunityName(string $community): string {
 
 
     $result = \Drupal::config("cgspace_importer.settings.communities")->get($community);
@@ -130,12 +170,12 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     if(is_null($result)) {
 
       try {
-        $community = $this->getData($this->endpoint . '/server/api/core/communities/' . $community);
+        $community = $this->getJsonData($this->endpoint . '/server/api/core/communities/' . $community);
 
 
         $result = (string)$community["name"];
       } catch (\Exception $ex) {
-        \Drupal::logger('cgspace_importer')->error(
+        $this->logger->error(
           t("Error getting name for community @community: @message", [
               "@community" => $community,
               "@message" => $ex->getMessage(),
@@ -150,7 +190,22 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
   }
 
-  public function getPagedItemsByQuery($collection='', $searchQuery='', $page=0, $result=[]) {
+  /**
+   * Build the query for CGSpace discover API from passed parameters
+   * and returns the Json result
+   *
+   * @param $collection
+   * The optional collection UUID user for scope
+   * @param $searchQuery
+   * The optional API URL parameter query
+   * @param $page
+   * The optional page index number for the query
+   * @param $result
+   * The result array with returned data from API
+   * @return array
+   * The result array with returned data from API
+   */
+  public function getPagedItemsByQuery(string $collection='', string $searchQuery='', int $page=0, array $result=[]):array {
 
     $query = [
       "query" => [
@@ -168,7 +223,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
 
     $url = Url::fromUri("$this->endpoint/server/api/discover/search/objects", $query);
 
-    $items = $this->getData($url->toString());
+    $items = $this->getJsonData($url->toString());
 
     foreach ($items['_embedded']['searchResult']['_embedded']['objects'] as $item) {
       if(isset($item['_embedded']['indexableObject']['uuid'])) {
@@ -179,16 +234,23 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
-  public function getItem($item): array
+  /**
+   * Load the item with UUID passed as argument from CGSpace API
+   *
+   * @param string $item
+   * the item UUID to load
+   * @return array
+   * The full data structure returned from the CGSpace API in a PHP array
+   */
+  public function getItem(string $item):array
   {
-    // remove XML header
-    $result = $this->getData("$this->endpoint/server/api/core/items/$item?embed=bundles/bitstreams,mappedCollections/parentCommunity");
-
+    $result = [];
     try {
+      $result = $this->getJsonData("$this->endpoint/server/api/core/items/$item?embed=bundles/bitstreams,mappedCollections/parentCommunity");
       $result = $this->getItemBitstreams($result);
     }
     catch (\Exception $ex) {
-      \Drupal::logger('cgspace_importer')->error(
+      $this->logger->error(
         t("Error getting item @item: @message", [
             "@message" => $ex->getMessage(),
             "@collection" => $item
@@ -200,25 +262,41 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $result;
   }
 
+  /**
+   * Load the list of items from endpoint sitemap
+   *
+   * @return array
+   * The array of items loaded from the sitemap index
+   */
   public function getItemsFromSitemap():array {
     $result = [];
-    $sitemap_index = $this->getXMLData("$this->endpoint/sitemap_index.xml");
 
-    foreach($sitemap_index as $sitemap_page) {
+    try {
+      $sitemap_index = $this->getXMLData("$this->endpoint/sitemap_index.xml");
 
-      $sitemap = $this->getXMLData((string) $sitemap_page->loc);
-      foreach($sitemap as $sitemap_item) {
-        if (preg_match('#/items/([0-9a-f\-]+)$#i', (string) $sitemap_item->loc, $matches)) {
-          $result[] = $matches[1];
+      foreach($sitemap_index as $sitemap_page) {
+
+        $sitemap = $this->getXMLData((string) $sitemap_page->loc);
+        foreach($sitemap as $sitemap_item) {
+          if (preg_match('#/items/([0-9a-f\-]+)$#i', (string) $sitemap_item->loc, $matches)) {
+            $result[] = $matches[1];
+          }
         }
       }
+    } catch (\Exception $ex) {
+      $this->logger->error(
+        t("Error getting items @from sitemap: @message", [
+            "@message" => $ex->getMessage(),
+          ]
+        )
+      );
     }
-
     return $result;
   }
 
   /**
    * Searches for bitstream Thumbnail and PDF and add them to item as root elements to avoid not supported jsonpath expressions no migrate importer
+   *
    * @param array $item
    * the item associative array
    * @return array
@@ -257,12 +335,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
         }
       }
     } catch (\Exception $ex) {
-      \Drupal::logger('cgspace_importer')->error(
-        t("Error getting item Bitstream: @message", [
-            "@message" => $ex->getMessage()
-          ]
-        )
-      );
+      print $ex->getMessage();
     }
     return $item;
   }

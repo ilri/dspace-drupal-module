@@ -98,6 +98,9 @@ class CGSpaceSettingsCollectionsForm extends CGSpaceSettingsBaseForm {
     //update collections added and deleted state array
     \Drupal::state()->set('cgspace_importer.collections_added', $collections_added);
 
+    //if collections settings have been saved remove the full_imported flag
+    \Drupal::state()->set('cgspace_importer.full_imported', true);
+
 
     parent::submitForm($form, $form_state);
   }

@@ -39,7 +39,8 @@ abstract class CGSpaceSettingsBaseForm extends ConfigFormBase {
       new CGSpaceProxy(
         $endpoint,
         $container->get('config.factory'),
-        $container->get('http_client')
+        $container->get('http_client'),
+        $container->get('logger.factory')
       ),
     );
   }

@@ -72,6 +72,15 @@ class TaxonomyTermProcessor extends BaseProcessor implements NodeImporterProcess
     return [];
   }
 
+  /**
+   * Return an array with term name and vocabulary machine name ready for loadByProperties
+   * @param $name
+   * the term name
+   * @param $vid
+   * the vocabulary machine name
+   * @return array
+   * the array ready for loadByProperties
+   */
   protected function setTerm($name, $vid) {
     return [
       'name' => $name,
@@ -79,57 +88,7 @@ class TaxonomyTermProcessor extends BaseProcessor implements NodeImporterProcess
     ];
   }
 
-  private static function processTaxonomyTerm($name, $vocabulary, $configuration) {
-    //get configuration
-    $config = \Drupal::configFactory()->getEditable($configuration);
 
-    if (empty($name)) {
-      return NULL;
-    }
-    // Attempt to fetch an existing term.
-    $properties = [];
-
-    //create term on research initiatives vocabulary
-    if((string) $config->get('create') == '1') {
-      $properties['vid'] = $vocabulary;
-      $properties['name'] = $name;
-
-      //check if the term already exists and return it
-      $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties($properties);
-      $term = reset($terms);
-      if (empty($term)) {
-        //if it doesn't exist create it
-        $term = Term::create($properties);
-        try {
-          $term->save();
-        }
-        catch (EntityStorageException $exception) {
-          \Drupal::messenger()->addError(
-            t("Error saving Term @term: @message",
-              [
-                '@term' => $term->getName(),
-                '@message' => $exception->getMessage()
-              ]
-            ));
-        }
-      }
-
-      return $term;
-    }
-    //try to map term on existing vocabulary
-    else {
-      $properties['name'] = $name;
-      $properties['vid'] = $config->get('vocabulary');
-
-      $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties($properties);
-      $term = reset($terms);
-      if (!empty($term)) {
-        return $term;
-      }
-    }
-
-    return NULL;
-  }
 
 }
 

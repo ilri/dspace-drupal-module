@@ -33,3 +33,10 @@ cgspace_importer.processors:
     _title: 'CGSpace Processors Settings'
   requirements:
     _permission: 'administer cgspace'
+cgspace_importer.sync:
+  path: '/admin/content/cgspace'
+  defaults:
+    _form: '\Drupal\cgspace_importer\Form\CGSpaceSyncForm'
+    _title: 'Sync Publications from CGSpace'
+  requirements:
+    _permission: 'administer cgspace'

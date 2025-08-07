@@ -24,12 +24,14 @@ class MarkupProcessor extends BaseProcessor implements NodeImporterProcessorInte
     }
 
     $value = $this->getSourceValue($source, $item);
-    //TODO: check if $this->configuration['format'] exists otherise fallback to plain
+    //set format to $this->configuration['format'] if it exists otherwise fallback to plain_text
+    $formats = filter_formats();
+
     if(!is_null($value)) {
       return [
         $target => [
           'value' => $value,
-          'format' => $this->configuration['format']
+          'format' => in_array($this->configuration['format'], $formats) ? $this->configuration['format'] : 'plain_text'
         ]
       ];
     }

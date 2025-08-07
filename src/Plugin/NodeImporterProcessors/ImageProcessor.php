@@ -5,9 +5,12 @@ namespace Drupal\cgspace_importer\Plugin\NodeImporterProcessors;
 
 use Drupal\cgspace_importer\BaseProcessor;
 use Drupal\Core\File\FileExists;
-use Drupal\file\Entity\File;
+use Drupal\file\FileRepository;
+use Drupal\Core\File\FileSystem;
 use Drupal\cgspace_importer\NodeImporterProcessorInterface;
-use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Client;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\file\FileInterface;
 
 /**
  * @NodeImporterProcessor(
@@ -19,21 +22,43 @@ use GuzzleHttp\ClientInterface;
 class ImageProcessor extends BaseProcessor implements NodeImporterProcessorInterface {
 
 
-  protected ClientInterface $httpClient;
-  protected $fileRepository;
+  /**
+   * @var Client Guzzle httpClient
+   */
+  protected Client $httpClient;
+  /**
+   * @var FileRepository file.repository Service
+   */
+  protected FileRepository $fileRepository;
 
-  protected array $field_configuration;
+  /**
+   * @var FileSystem file_system Service
+   */
+  protected FileSystem $fileSystem;
+
+  /**
+   * Fields definition for content type configured through the cgspace_importer.mappings configuration
+   *
+   * @var array
+   */
+  protected array $fieldDefinitions;
+
+  /**
+   * Drupal field max length for uri on Image field
+   */
+  protected const MAX_FILENAME_LENGTH = 255;
+
+
 
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->httpClient = \Drupal::httpClient();
     $this->fileRepository = \Drupal::service('file.repository');
-
+    $this->fileSystem = \Drupal::service('file_system');
     $content_type = \Drupal::config('cgspace_importer.mappings')->get('content_type');
-    $this->field_configuration =  \Drupal::service('entity_field.manager')->getFieldDefinitions("node", $content_type);
+    $this->fieldDefinitions =  \Drupal::service('entity_field.manager')->getFieldDefinitions("node", $content_type);
   }
 
-  protected const MAX_FILENAME_LENGTH = 255;
 
   /**
    * {@inheritDoc}
@@ -46,14 +71,17 @@ class ImageProcessor extends BaseProcessor implements NodeImporterProcessorInter
 
       try {
         //get local path from field configuration
-        $field_definition = $this->field_configuration[$target];
+        $field_definition = $this->fieldDefinitions[$target];
         $field_settings = $field_definition->getSettings();
-        $local_uri = $field_settings['uri_scheme'].'://'.$field_settings['file_directory'].'/'.$source_value['name'];
+        //create directory if it doesn't exist.
+        $directory = $field_settings['uri_scheme'].'://'.$field_settings['file_directory'];
+        $this->fileSystem->prepareDirectory($directory, FileSystemInterface:: CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+
+        $local_uri = $directory .'/'.$source_value['name'];
 
         $file = $this->getImage($local_uri, $source_value['uri']);
 
-        if ($file instanceof File) {
-
+        if($file instanceof FileInterface) {
           return [
             $target => [
               'target_id' => $file->id(),
@@ -62,8 +90,9 @@ class ImageProcessor extends BaseProcessor implements NodeImporterProcessorInter
             ]
           ];
         }
+
       } catch (\Exception $ex) {
-        \Drupal::logger('cgspace_importer')->error(
+        $this->logger->error(
           t("Error saving Cover file: @message",
             ['@message' => $ex->getMessage()]
           ));
@@ -74,7 +103,17 @@ class ImageProcessor extends BaseProcessor implements NodeImporterProcessorInter
     return [];
   }
 
-  private function getImage($destination, $remote_url) {
+  /**
+   * Download remote Image and save to destination directory
+   *
+   * @param $destination
+   * The full local path
+   * @param $remote_url
+   * the full remote Url
+   * @return mixed
+   * the File Class Object created
+   */
+  private function getImage($destination, $remote_url): mixed {
 
     try {
       $data = $this->httpClient->get($remote_url)->getBody();
@@ -92,22 +131,39 @@ class ImageProcessor extends BaseProcessor implements NodeImporterProcessorInter
       }
 
       return $file;
+
     }
     catch (\Exception $ex) {
-      \Drupal::logger("cgspace_importer")->error(
+      $this->logger->error(
         t("Error saving Cover file: @message",
           ['@message' => $ex->getMessage()]
         ));
     }
+
+    return [];
   }
 
+  /**
+   * Check if uri length is within the MAX_FILENAME_LENGTH limit
+   * @param $uri
+   * the URI to check
+   * @return bool
+   * true if is valid false otherwise
+   */
   private function isValidUri($uri):bool {
     return (strlen($uri) < self::MAX_FILENAME_LENGTH);
   }
 
+  /**
+   * Truncate URI truncating only the filename and preserving the extension
+   * @param $uri
+   * the full URI to be truncated
+   * @return string
+   * the truncated full URI
+   */
   private function truncateUri($uri):string {
 
-    \Drupal::logger('cgspace_importer')->warning(
+    $this->logger->warning(
       t("Filename too long for @file. Max length is @length",
         [
           '@file' => $uri,

@@ -2,25 +2,41 @@
 
 namespace Drupal\cgspace_importer;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\node\Entity\Node;
 use Drupal\node\NodeInterface;
+use Drupal\Core\Database\Connection;
+use Drupal\Core\Config\ImmutableConfig;
 
 class NodeImporter {
 
-  private $config;
-  private $plugin_manager;
-  private $connection;
-  private $entityStorage;
+  use DependencySerializationTrait;
+  private ImmutableConfig $config;
+  private NodeImporterProcessorManager $pluginManager;
+  private Connection $connection;
+  private EntityStorageInterface $entityStorage;
+  private LoggerChannelInterface $logger;
 
   public function __construct()
   {
     $this->config = \Drupal::config('cgspace_importer.mappings');
-    $this->plugin_manager = \Drupal::service('plugin.manager.cgspace_importer.processors');
+    $this->pluginManager = \Drupal::service('plugin.manager.cgspace_importer.processors');
     $this->connection = \Drupal::database();
     $this->entityStorage = \Drupal::entityTypeManager()->getStorage('node');
+    $loggerFactory = \Drupal::service('logger.factory');
+    $this->logger = $loggerFactory->get('cgspace_importer');
   }
 
-  public function add(array $item) {
+  /**
+   * Create a Node from passed array using the process plugins and mappings configuration
+   *
+   * @param array $item
+   * The array with raw data returned by CGSpace API
+   * @return void
+   */
+  public function add(array $item):void {
 
     try {
 
@@ -39,7 +55,7 @@ class NodeImporter {
       $node->save();
     }
     catch(\Exception $ex) {
-      \Drupal::logger('cgspace_importer')->error(
+      $this->logger->error(
         t("Unable to save Item @item. @error",
           [
             '@item' => $item['uuid'],
@@ -49,7 +65,14 @@ class NodeImporter {
     }
   }
 
-  public function update(NodeInterface $node, array $item) {
+  /**
+   * Update the passed Node with item array passed as argument using the process plugins and mappings configuration
+   *
+   * @param array $item
+   * The array with raw data returned by CGSpace API
+   * @return void
+   */
+  public function update(NodeInterface $node, array $item):void {
     try {
 
       $data = $this->getNodeData($item);
@@ -60,7 +83,7 @@ class NodeImporter {
       $node->save();
 
     } catch(\Exception $ex) {
-      \Drupal::messenger()->addError(
+      $this->logger->error(
         t("Unable to update Item @item. @error",
           [
             '@item' => $item['uuid'],
@@ -70,6 +93,10 @@ class NodeImporter {
     }
   }
 
+  /**
+   * @param array $item
+   * @return array
+   */
   private function getNodeData(array $item):array {
     $data = [];
     $configuration = [];
@@ -82,8 +109,8 @@ class NodeImporter {
       else {
         $plugin_name = 'default';
       }
-      $plugin_definition = $this->plugin_manager->getDefinition('cgspace_processor_' . $plugin_name);
-      $plugin = $this->plugin_manager->createInstance($plugin_definition['id'], $configuration);
+      $plugin_definition = $this->pluginManager->getDefinition('cgspace_processor_' . $plugin_name);
+      $plugin = $this->pluginManager->createInstance($plugin_definition['id'], $configuration);
       if(!empty($field = $plugin->process($mapping['source'], $mapping['target'], $item))) {
         $data += $field;
       }
@@ -91,7 +118,14 @@ class NodeImporter {
     return $data;
   }
 
-  public function exists($uuid):bool {
+  /**
+   * Check that Node with uuid_field equal to UUID passed as argument exists
+   * @param $uuid
+   * the UUID of the Node to check
+   * @return bool
+   * true if it exists false otherwise
+   */
+  public function exists(string $uuid):bool {
 
     $query = $this->connection->select('node__'.$this->config->get('uuid_field'), 'f');
     $query->join('node_field_data', 'n', 'n.nid = f.entity_id');
@@ -102,8 +136,15 @@ class NodeImporter {
     return !empty($query->execute()->fetchCol());
   }
 
-  public function get($uuid) {
-    $nodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties([
+  /**
+   * Load Node with uuid_field equal to UUID passed as argument
+   *
+   * @param $uuid
+   * the UUID of the Node to load
+   * @return mixed
+   */
+  public function get($uuid):mixed {
+    $nodes = $this->entityStorage->loadByProperties([
       'type' => $this->config->get('content_type'),
       $this->config->get('uuid_field') => $uuid
     ]);
@@ -111,7 +152,17 @@ class NodeImporter {
     return reset($nodes);
   }
 
-  public function delete($uuids, &$context) {
+  /**
+   * Delete an array of Nodes with uuid_field equal to passed uuids
+   *
+   * @param $uuids
+   * the array of nodes with uuid field equal to passed uuids
+   * @param $context
+   * the Batch process context
+   * @return bool
+   * true if nodes are deleted false otherwise
+   */
+  public function delete(array $uuids, array &$context):bool {
     try {
 
       $nids = \Drupal::entityQuery('node')
@@ -128,16 +179,17 @@ class NodeImporter {
 
         return true;
       }
-      return false;
+
     }
     catch (\Exception $ex) {
-      \Drupal::logger('cgspace_importer')->error(
+      $this->logger->error(
         t("Error deleting node . @error",
           [
             '@error' => $ex->getMessage()
           ])
       );
     }
+    return false;
   }
 
 }
