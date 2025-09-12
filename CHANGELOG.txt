@@ -1,3 +1,5 @@
+# Version 1.1.4
+• Patch for acquia command update issue
 # Version 1.1.3
 • New Feature: Created a new Tab on the Admin interface under admin/content/cgspace that let user run the batch process for update command directly from the UI
 • Bugfix: Error on installation if destination folder doesn't exist. Image Processor now creates destination folder set in the target field configuration.

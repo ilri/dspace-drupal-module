@@ -174,7 +174,7 @@ class CGSpaceImporterCommands extends DrushCommands {
             //run the BatchListProcess without query (fetch all the collection) otherwise use the lastModified query (fetch the collection since the last_run date)
             $collections_added = \Drupal::state()->get('cgspace_importer.collections_added');
 
-            if (in_array($collection, $collections_added)) {
+            if (!is_null($collections_added) && in_array($collection, $collections_added)) {
               $collection_num_items = $this->proxy->countCollectionItems($collection, '');
               $pages = ceil($collection_num_items / $this->configuration->get('page_size'));
               $num_items += $collection_num_items;
