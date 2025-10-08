@@ -246,8 +246,9 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
   {
     $result = [];
     try {
-      $result = $this->getJsonData("$this->endpoint/server/api/core/items/$item?embed=bundles/bitstreams,mappedCollections/parentCommunity");
+      $result = $this->getJsonData("$this->endpoint/server/api/core/items/$item?embed=bundles/bitstreams,owningCollection,mappedCollections/parentCommunity");
       $result = $this->getItemBitstreams($result);
+      $result = $this->getItemCollectionsAndCommunities($result);
     }
     catch (\Exception $ex) {
       $this->logger->error(
@@ -340,5 +341,34 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
     return $item;
   }
 
+  private function getItemCollectionsAndCommunities(array $item): array {
+    $item['collections'] = [];
+    $item['communities'] = [];
+    try {
+      if(isset($item['_embedded']['owningCollection'])) {
+        $item['collections'][] = $item['_embedded']['owningCollection']['name'];
+        if(isset($item['_embedded']['owningCollection']['_embedded']['parentCommunity'])) {
+          $item['communities'][] = $item['_embedded']['owningCollection']['_embedded']['parentCommunity']['name'];
+        }
+      }
+      if (isset($item['_embedded']['mappedCollections']['_embedded']['mappedCollections'])) {
+        foreach ($item['_embedded']['mappedCollections']['_embedded']['mappedCollections'] as $collection) {
+          if (isset($collection['name'])) {
+            if(!in_array($collection['name'], $item['collections'])) {
+              $item['collections'][] = $collection['name'];
+            }
+            if(isset($collection['_embedded']['parentCommunity'])) {
+              if(!in_array($collection['_embedded']['parentCommunity']['name'], $item['communities'])) {
+                $item['communities'][] = $collection['_embedded']['parentCommunity']['name'];
+              }
+            }
+          }
+        }
+      }
+    } catch (\Exception $ex) {
+      print $ex->getMessage();
+    }
+    return $item;
+  }
 
 }

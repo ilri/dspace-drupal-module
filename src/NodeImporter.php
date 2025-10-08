@@ -115,6 +115,9 @@ class NodeImporter {
         $data += $field;
       }
     }
+
+    //$this->logger->notice(t("Processing @item", ['@item' => $item['name']]));
+
     return $data;
   }
 

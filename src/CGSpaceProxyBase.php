@@ -24,7 +24,10 @@ Class CGSpaceProxyBase {
 
   public function __construct(string $endpoint, ConfigFactoryInterface $configFactory, ClientInterface $httpClient, LoggerChannelFactoryInterface $loggerFactory) {
     $this->configuration = $configFactory->get('cgspace_importer.settings.general');
-    $this->endpoint = empty($endpoint)? $this->configuration->get('endpoint') : $endpoint;
+    if(is_null($this->configuration->get('endpoint'))) {
+      $endpoint = '';
+    }
+    $this->endpoint = $endpoint;
     $this->httpClient = $httpClient;
     $this->logger = $loggerFactory->get('cgspace_importer');
 

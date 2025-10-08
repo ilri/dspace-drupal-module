@@ -25,6 +25,8 @@ dependencies:
     - field.field.node.cgspace_publication.field_cg_series
     - field.field.node.cgspace_publication.field_cg_initiatives_ref
     - field.field.node.cgspace_publication.field_cg_impact_areas_ref
+    - field.field.node.cgspace_publication.field_cg_collections_ref
+    - field.field.node.cgspace_publication.field_cg_communities_ref
     - node.type.cgspace_publication
   module:
     - country
@@ -248,6 +250,22 @@ content:
     weight: 15
     region: content
   field_cg_tags_ref:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: { }
+    weight: 15
+    region: content
+  field_cg_collections_ref:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: { }
+    weight: 15
+    region: content
+  field_cg_communities_ref:
     type: entity_reference_label
     label: above
     settings:

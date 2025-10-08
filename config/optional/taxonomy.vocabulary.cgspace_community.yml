@@ -1,0 +1,8 @@
+langcode: en
+status: true
+dependencies: {  }
+name: 'Publication: Community'
+vid: cgspace_community
+description: 'Used to store CGSpace communities'
+weight: 0
+new_revision: false

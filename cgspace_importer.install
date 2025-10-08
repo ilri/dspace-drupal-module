@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\Component\Serialization\Yaml;
 /**
  * hook_uninstall
  */
@@ -16,4 +18,96 @@ function cgspace_importer_uninstall() {
 
   \Drupal::state()->delete('cgspace_importer.last_run');
 
+}
+
+function cgspace_importer_update_800102() {
+
+  $module_path = \Drupal::service('extension.list.module')->getPath('cgspace_importer');
+
+  //create new taxonomy vocabularies
+  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/taxonomy.vocabulary.cgspace_collection.yml'));
+  if (!FieldStorageConfig::loadByName($yml['name'], $yml['vid'])) {
+    FieldStorageConfig::create($yml)->save();
+  }
+  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/taxonomy.vocabulary.cgspace_community.yml'));
+  if (!FieldStorageConfig::loadByName($yml['name'], $yml['vid'])) {
+    FieldStorageConfig::create($yml)->save();
+  }
+
+  //create new fields storage
+  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/field.storage.node.field_cg_collections_ref.yml'));
+  if (!FieldStorageConfig::loadByName($yml['entity_type'], $yml['field_name'])) {
+    FieldStorageConfig::create($yml)->save();
+  }
+  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/field.storage.node.field_cg_communities_ref.yml'));
+  if (!FieldStorageConfig::loadByName($yml['entity_type'], $yml['field_name'])) {
+    FieldStorageConfig::create($yml)->save();
+  }
+
+  //create new fields
+  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/field.field.node.cgspace_publication.field_cg_collections_ref.yml'));
+  if (!FieldStorageConfig::loadByName($yml['entity_type'], $yml['field_name'])) {
+    FieldStorageConfig::create($yml)->save();
+  }
+  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/field.field.node.cgspace_publication.field_cg_communities_ref.yml'));
+  if (!FieldStorageConfig::loadByName($yml['entity_type'], $yml['field_name'])) {
+    FieldStorageConfig::create($yml)->save();
+  }
+
+  //create form display
+  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/core.entity_form_display.taxonomy_term.cgspace_publication_collection.default.yml'));
+  if (!FieldStorageConfig::loadByName($yml['id'], $yml['bundle'])) {
+    FieldStorageConfig::create($yml)->save();
+  }
+
+  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/core.entity_form_display.taxonomy_term.cgspace_publication_community.default.yml'));
+  if (!FieldStorageConfig::loadByName($yml['id'], $yml['bundle'])) {
+    FieldStorageConfig::create($yml)->save();
+  }
+
+  //update cgspace_importer mappings
+  $config_factory = \Drupal::configFactory();
+  $mappings = $config_factory->getEditable('cgspace_importer.mappings')->get('mappings');
+  $field_cg_collections_ref = [
+    'source' => 'collections',
+    'target' => 'field_cg_collections_ref',
+    'process' => [
+      'plugin' => 'taxonomy_term',
+      'vocabulary' => 'cgspace_collection',
+      'create' => true
+    ]
+  ];
+
+  $field_cg_communities_ref = [
+    'source' => 'communities',
+    'target' => 'field_cg_communities_ref',
+    'process' => [
+      'plugin' => 'taxonomy_term',
+      'vocabulary' => 'cgspace_community',
+      'create' => true
+    ]
+  ];
+
+  $field_cg_publication_type_ref = [
+    'source' => 'dcterms.type',
+    'target' => 'field_cg_publication_type_ref',
+    'process' => [
+      'plugin' => 'taxonomy_term',
+      'vocabulary' => 'cgspace_publication_type',
+      'create' => true
+    ]
+  ];
+
+  $mappings += $field_cg_collections_ref + $field_cg_communities_ref + $field_cg_publication_type_ref;
+
+  $config_factory->getEditable('cgspace_importer.mappings')->set('mappings', $mappings)->save();
+
+  //update field_cg_impact_areas_ref cardinality
+  $config_factory->getEditable('field.storage.node.field_cg_impact_areas_ref')->set('cardinality', -1)->save();
+  //update field_cg_initiatives_ref cardinality
+  $config_factory->getEditable('field.storage.node.field_cg_initiatives_ref')->set('cardinality', -1)->save();
+  //update field_cg_publication_type_ref cardinality
+  $config_factory->getEditable('field.storage.node.field_cg_publication_type_ref')->set('cardinality', -1)->save();
+  //update field_cg_tags_ref cardinality
+  $config_factory->getEditable('field.storage.node.field_cg_tags_ref')->set('cardinality', -1)->save();
 }

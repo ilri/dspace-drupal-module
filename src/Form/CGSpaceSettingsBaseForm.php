@@ -33,6 +33,9 @@ abstract class CGSpaceSettingsBaseForm extends ConfigFormBase {
 
   public static function create($container): static {
     $endpoint = $container->get('config.factory')->get(static::SETTINGS)->get('endpoint');
+    if (is_null($endpoint)) {
+      $endpoint = '';
+    }
     return new static(
       $container->get('config.factory'),
       $container->get('config.typed'),

@@ -23,6 +23,8 @@ dependencies:
     - field.field.node.cgspace_publication.field_cg_published_on_date
     - field.field.node.cgspace_publication.field_cg_publisher
     - field.field.node.cgspace_publication.field_cg_series
+    - field.field.node.cgspace_publication.field_cg_collections_ref
+    - field.field.node.cgspace_publication.field_cg_communities_ref
 #    - field.field.node.publication.field_impact_areas_ref
 #    - field.field.node.publication.field_initiatives_ref
 #    - field.field.node.publication.field_projects_ref
@@ -79,6 +81,8 @@ hidden:
   field_cg_published_on_date: true
   field_cg_publisher: true
   field_cg_series: true
+  field.field.node.cgspace_publication.field_cg_collections_ref: true
+  field.field.node.cgspace_publication.field_cg_communities_ref: true
 #  field_hubs_ref: true
 #  field_impact_areas_ref: true
 #  field_initiatives_ref: true

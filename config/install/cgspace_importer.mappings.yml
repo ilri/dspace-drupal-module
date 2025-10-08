@@ -38,6 +38,13 @@ mappings:
     source: dcterms.publisher
     target: field_cg_publisher
   -
+    source: dcterms.type
+    target: field_cg_publication_type_ref
+    process:
+      plugin: taxonomy_term
+      vocabulary: cgspace_publication_type
+      create: true
+  -
     source: dcterms.bibliographicCitation
     target: field_cg_citation
   -
@@ -111,4 +118,18 @@ mappings:
       plugin: taxonomy_term
       vocabulary: cgspace_tags
       configuration: cgspace_importer.settings.processors.tags
+      create: true
+  -
+    source: collections
+    target: field_cg_collections_ref
+    process:
+      plugin: taxonomy_term
+      vocabulary: cgspace_collection
+      create: true
+  -
+    source: communities
+    target: field_cg_communities_ref
+    process:
+      plugin: taxonomy_term
+      vocabulary: cgspace_community
       create: true

@@ -1,5 +1,11 @@
-# Version 1.1.4
-• Patch for acquia command update issue
+# Version 1.2.0
+• Bugfix: solved an issue on fresh installation with empty configuration
+• Added Collection and Community vocabularies to store CGSpace collections and communities
+• Added Collections and Communities fields to Publication content type
+• Added ability to map multiple terms to taxonomy term processor
+• Bugfix: Publication type mapping from CGSpace dcterms.type was missing
+• Updated cardinality for field_cg_impact_areas_ref, field_cg_initiatives_ref, field_cg_publication_type_ref, field_cg_tags_ref to unlimited
+• Added update script
 # Version 1.1.3
 • New Feature: Created a new Tab on the Admin interface under admin/content/cgspace that let user run the batch process for update command directly from the UI
 • Bugfix: Error on installation if destination folder doesn't exist. Image Processor now creates destination folder set in the target field configuration.
