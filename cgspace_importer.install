@@ -1,7 +1,7 @@
 <?php
 
-use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\Component\Serialization\Yaml;
+use Drupal\taxonomy\Entity\Vocabulary;
+use Drupal\Core\Config\FileStorage;
 /**
  * hook_uninstall
  */
@@ -25,44 +25,90 @@ function cgspace_importer_update_800102() {
   $module_path = \Drupal::service('extension.list.module')->getPath('cgspace_importer');
 
   //create new taxonomy vocabularies
-  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/taxonomy.vocabulary.cgspace_collection.yml'));
-  if (!FieldStorageConfig::loadByName($yml['name'], $yml['vid'])) {
-    FieldStorageConfig::create($yml)->save();
+  $vid = 'cgspace_collection';
+
+  if (!Vocabulary::load($vid)) {
+    $vocabulary = Vocabulary::create([
+      'vid' => $vid,
+      'description' => 'Used to store CGSpace collections',
+      'name' => 'Publication: Collection',
+    ]);
+
+    $vocabulary->save();
   }
-  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/taxonomy.vocabulary.cgspace_community.yml'));
-  if (!FieldStorageConfig::loadByName($yml['name'], $yml['vid'])) {
-    FieldStorageConfig::create($yml)->save();
+
+  $vid = 'cgspace_community';
+
+  if (!Vocabulary::load($vid)) {
+    $vocabulary = Vocabulary::create([
+      'vid' => $vid,
+      'description' => 'Used to store CGSpace communities',
+      'name' => 'Publication: Community',
+    ]);
+
+    $vocabulary->save();
   }
 
   //create new fields storage
-  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/field.storage.node.field_cg_collections_ref.yml'));
-  if (!FieldStorageConfig::loadByName($yml['entity_type'], $yml['field_name'])) {
-    FieldStorageConfig::create($yml)->save();
-  }
-  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/field.storage.node.field_cg_communities_ref.yml'));
-  if (!FieldStorageConfig::loadByName($yml['entity_type'], $yml['field_name'])) {
-    FieldStorageConfig::create($yml)->save();
+  $config_path = $module_path . '/config/optional';
+  $config_manager = Drupal::service('config.manager');
+
+  $source = new FileStorage($config_path);
+  $entity_type_manager = \Drupal::entityTypeManager();
+  $field_storage = $entity_type_manager->getStorage('field_storage_config');
+  $field_config = $entity_type_manager->getStorage('field_config');
+
+  // Only try to create the field if it doesn't already exist.
+  if (!$field_storage->load('node.field_cg_collections_ref')) {
+    $config_record = $source->read('field.storage.node.field_cg_collections_ref.yml');
+    $entity_type = $config_manager->getEntityTypeIdByName('field.storage.node.field_cg_collections_ref');
+
+    /** @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface $storage */
+    $storage = $entity_type_manager->getStorage($entity_type);
+
+    // Create the config entity.
+    $storage
+      ->createFromStorageRecord($config_record)
+      ->save();
   }
 
-  //create new fields
-  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/field.field.node.cgspace_publication.field_cg_collections_ref.yml'));
-  if (!FieldStorageConfig::loadByName($yml['entity_type'], $yml['field_name'])) {
-    FieldStorageConfig::create($yml)->save();
-  }
-  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/field.field.node.cgspace_publication.field_cg_communities_ref.yml'));
-  if (!FieldStorageConfig::loadByName($yml['entity_type'], $yml['field_name'])) {
-    FieldStorageConfig::create($yml)->save();
+  if (!$field_config->load('node.cgspace_publication.field_cg_collections_ref')) {
+    $config_record = $source->read('field.field.node.cgspace_publication.field_cg_collections_ref');
+    $entity_type = $config_manager->getEntityTypeIdByName('field.field.node.cgspace_publication.field_cg_collections_ref');
+
+    /** @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface $storage */
+    $storage = $entity_type_manager->getStorage($entity_type);
+
+    // Create the config entity.
+    $storage
+      ->createFromStorageRecord($config_record)
+      ->save();
   }
 
-  //create form display
-  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/core.entity_form_display.taxonomy_term.cgspace_publication_collection.default.yml'));
-  if (!FieldStorageConfig::loadByName($yml['id'], $yml['bundle'])) {
-    FieldStorageConfig::create($yml)->save();
+  if (!$field_storage->load('node.field_cg_communities_ref')) {
+    $config_record = $source->read('field.storage.node.field_cg_communities_ref');
+    $entity_type = $config_manager->getEntityTypeIdByName('field.storage.node.field_cg_communities_ref');;
+
+    /** @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface $storage */
+    $storage = $entity_type_manager->getStorage($entity_type);
+
+    // Create the config entity.
+    $storage
+      ->createFromStorageRecord($config_record)
+      ->save();
   }
 
-  $yml = Yaml::decode(file_get_contents($module_path . '/config/optional/core.entity_form_display.taxonomy_term.cgspace_publication_community.default.yml'));
-  if (!FieldStorageConfig::loadByName($yml['id'], $yml['bundle'])) {
-    FieldStorageConfig::create($yml)->save();
+  if (!$field_config->load('node.cgspace_publication.field_cg_communities_ref')) {
+    $config_record = $source->read('field.field.node.cgspace_publication.field_cg_communities_ref');
+    $entity_type = $config_manager->getEntityTypeIdByName('field.field.node.cgspace_publication.field_cg_communities_ref');
+
+    /** @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface $storage */
+    $storage = $entity_type_manager->getStorage($entity_type);
+
+    // Create the config entity.
+    $storage
+      ->createFromStorageRecord($config_record)
+      ->save();
   }
 
   //update cgspace_importer mappings

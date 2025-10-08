@@ -1,3 +1,5 @@
+# Version 1.2.1
+• Bugfix: "Attempt to create a field storage without a field name." error during updb execution
 # Version 1.2.0
 • Bugfix: solved an issue on fresh installation with empty configuration
 • Added Collection and Community vocabularies to store CGSpace collections and communities
