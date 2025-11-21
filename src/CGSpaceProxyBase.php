@@ -17,17 +17,14 @@ Class CGSpaceProxyBase {
 
   use DependencySerializationTrait;
 
-  protected string $endpoint;
+  protected $endpoint;
   protected ClientInterface $httpClient;
   protected ImmutableConfig $configuration;
   protected LoggerChannelInterface $logger;
 
-  public function __construct(string $endpoint, ConfigFactoryInterface $configFactory, ClientInterface $httpClient, LoggerChannelFactoryInterface $loggerFactory) {
+  public function __construct($endpoint, ConfigFactoryInterface $configFactory, ClientInterface $httpClient, LoggerChannelFactoryInterface $loggerFactory) {
     $this->configuration = $configFactory->get('cgspace_importer.settings.general');
-    if(is_null($this->configuration->get('endpoint'))) {
-      $endpoint = '';
-    }
-    $this->endpoint = $endpoint;
+    $this->endpoint = empty($endpoint)? $this->configuration->get('endpoint') : $endpoint;
     $this->httpClient = $httpClient;
     $this->logger = $loggerFactory->get('cgspace_importer');
 
@@ -37,7 +34,7 @@ Class CGSpaceProxyBase {
     $configFactory = $container->get('config.factory');
     $configuration = $configFactory->get('cgspace_importer.settings.general');
     return new static(
-      $configuration->get('endpoint'),
+      $configuration->get('endpoint') ?? '',
       $configFactory,
       $container->get('http_client'),
       $container->get('logger.factory'),

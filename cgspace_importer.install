@@ -60,7 +60,7 @@ function cgspace_importer_update_800102() {
 
   // Only try to create the field if it doesn't already exist.
   if (!$field_storage->load('node.field_cg_collections_ref')) {
-    $config_record = $source->read('field.storage.node.field_cg_collections_ref.yml');
+    $config_record = $source->read('field.storage.node.field_cg_collections_ref');
     $entity_type = $config_manager->getEntityTypeIdByName('field.storage.node.field_cg_collections_ref');
 
     /** @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface $storage */
@@ -124,6 +124,8 @@ function cgspace_importer_update_800102() {
     ]
   ];
 
+  array_push($mappings, $field_cg_collections_ref);
+
   $field_cg_communities_ref = [
     'source' => 'communities',
     'target' => 'field_cg_communities_ref',
@@ -133,6 +135,8 @@ function cgspace_importer_update_800102() {
       'create' => true
     ]
   ];
+
+  array_push($mappings, $field_cg_communities_ref);
 
   $field_cg_publication_type_ref = [
     'source' => 'dcterms.type',
@@ -144,7 +148,8 @@ function cgspace_importer_update_800102() {
     ]
   ];
 
-  $mappings += $field_cg_collections_ref + $field_cg_communities_ref + $field_cg_publication_type_ref;
+  array_push($mappings, $field_cg_publication_type_ref);
+
 
   $config_factory->getEditable('cgspace_importer.mappings')->set('mappings', $mappings)->save();
 
