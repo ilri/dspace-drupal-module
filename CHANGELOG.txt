@@ -1,3 +1,5 @@
+# Version 1.2.4
+• Release of 1.2.4 version
 # Version 1.2.3
 • Bugfix: token on image file path are not resolved
 • Changed the way how bitstreams are downloaded since some thumbnails where not available
