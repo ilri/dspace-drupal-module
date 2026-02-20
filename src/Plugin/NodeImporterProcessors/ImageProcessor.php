@@ -74,7 +74,7 @@ class ImageProcessor extends BaseProcessor implements NodeImporterProcessorInter
         $field_definition = $this->fieldDefinitions[$target];
         $field_settings = $field_definition->getSettings();
         //create directory if it doesn't exist.
-        $directory = $field_settings['uri_scheme'].'://'.$field_settings['file_directory'];
+        $directory = $field_settings['uri_scheme'].'://'.\Drupal::token()->replace($field_settings['file_directory']);
         $this->fileSystem->prepareDirectory($directory, FileSystemInterface:: CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
 
         $local_uri = $directory .'/'.$source_value['name'];

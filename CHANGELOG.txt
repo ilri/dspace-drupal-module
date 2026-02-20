@@ -1,3 +1,6 @@
+# Version 1.2.3
+• Bugfix: token on image file path are not resolved
+• Changed the way how bitstreams are downloaded since some thumbnails where not available
 # Version 1.2.2
 • Bugfix: resolved update procedure issues
 • Bugfix: fixed an issue with fresh install and CGSpaceImporter endpoint empty

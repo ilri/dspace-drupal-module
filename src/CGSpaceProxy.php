@@ -310,7 +310,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
         foreach ($item['_embedded']['bundles']['_embedded']['bundles'] as $bundle) {
           if (isset($bundle['_embedded']['bitstreams']['_embedded']['bitstreams'])) {
             foreach ($bundle['_embedded']['bitstreams']['_embedded']['bitstreams'] as $bitstream) {
-              if (isset($bitstream['bundleName']) && ($bitstream['bundleName'] === 'ORIGINAL')) {
+              if (isset($bitstream['bundleName']) ) { //&& ($bitstream['bundleName'] === 'ORIGINAL')) {
                 if (isset($bitstream['_links']['thumbnail']['href'])) {
 
                   $thumbnail = $this->getDataBitstream($bitstream['_links']['thumbnail']['href']);
