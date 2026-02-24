@@ -310,20 +310,15 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
         foreach ($item['_embedded']['bundles']['_embedded']['bundles'] as $bundle) {
           if (isset($bundle['_embedded']['bitstreams']['_embedded']['bitstreams'])) {
             foreach ($bundle['_embedded']['bitstreams']['_embedded']['bitstreams'] as $bitstream) {
-              if (isset($bitstream['bundleName']) ) { //&& ($bitstream['bundleName'] === 'ORIGINAL')) {
-                if (isset($bitstream['_links']['thumbnail']['href'])) {
-
-                  $thumbnail = $this->getDataBitstream($bitstream['_links']['thumbnail']['href']);
-                  if (!empty($thumbnail)) {
-                    if (isset($thumbnail['_links']['content']['href'])) {
-                      $item['picture'] = [
-                        'name' => $thumbnail['name'],
-                        'uri' => $thumbnail['_links']['content']['href']
-                      ];
-                    }
-                  }
+              if (isset($bitstream['bundleName']) && ($bitstream['bundleName'] === 'THUMBNAIL')) {
+                if (isset($bitstream['_links']['content']['href'])) {
+                  $item['picture'] = [
+                    'name' => $bitstream['name'],
+                    'uri' => $bitstream['_links']['content']['href']
+                  ];
                 }
-
+              }
+              if (isset($bitstream['bundleName']) && ($bitstream['bundleName'] === 'ORIGINAL')) {
                 if (isset($bitstream['_links']['content']['href'])) {
                   $item['attachment'] = [
                     'name' => $bitstream['name'],
@@ -331,6 +326,7 @@ Class CGSpaceProxy extends CGSpaceProxyBase {
                   ];
                 }
               }
+
             }
           }
         }
